@@ -3,6 +3,10 @@
 Aide-mémoire pour la basse 4 cordes (accordage standard E-A-D-G) : gammes et modes,
 cercle des quintes, et entraînement métronomé. Pensé pour le mobile **et** le desktop.
 
+**En ligne : https://kevin-aff.github.io/memo-basse/** — publié automatiquement à chaque push
+sur `main`. Sur téléphone, « Ajouter à l'écran d'accueil » donne une icône qui l'ouvre en plein
+écran.
+
 Implémentation React + Vite + TypeScript de la référence de design
 [`design_handoff_bass_scales/Gammes Basse.dc.html`](design_handoff_bass_scales/Gammes%20Basse.dc.html).
 
