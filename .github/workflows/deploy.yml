@@ -2,7 +2,8 @@ name: Déploiement GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   # Permet aussi de relancer la publication à la main depuis l'onglet Actions.
   workflow_dispatch:
 
