@@ -102,6 +102,12 @@ portage React Native / Expo.
 
 ## Référence de design
 
-`design_handoff_bass_scales/` contient le prototype d'origine et son handoff. `support.js` est le
-runtime du format « Design Component » : il sert seulement à ouvrir le prototype dans un
-navigateur, il n'est pas utilisé par l'application.
+Les deux livraisons de design sont conservées, pour garder l'historique des intentions :
+
+- `design_handoff_bass_scales/` — livraison initiale.
+- `design_handoff_bass_scales_maj/` — **référence courante**, mise à jour du cercle des quintes.
+  Son `CHANGELOG.md` détaille ce qui a changé depuis la première.
+
+C'est la seconde qui fait foi ; l'application est alignée dessus. `support.js` est le runtime du
+format « Design Component » : il sert seulement à ouvrir le prototype dans un navigateur, il n'est
+pas utilisé par l'application.
