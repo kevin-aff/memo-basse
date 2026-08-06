@@ -2,9 +2,11 @@ import { useMemo } from 'react';
 import { playSequence } from '../audio/engine';
 import { Fretboard, fretboardLabel } from '../components/Fretboard';
 import { Neck } from '../components/Neck';
+import { Repertoire } from '../components/Repertoire';
 import { RootToggle } from '../components/RootToggle';
 import { BackButton, Field, OptionGrid, PanelCard, cx, gridStyle } from '../components/ui';
 import { DEGREE_NUM } from '../config';
+import { isMinorColour } from '../music/scales';
 import { buildScaleView } from '../music/scaleView';
 import type { LabelMode, ScaleId } from '../music/types';
 
@@ -115,6 +117,8 @@ export function ScaleView(props: ScaleViewProps) {
           <PanelCard key={p.title} panel={p} />
         ))}
       </div>
+
+      <Repertoire pc={v.ctx.pc} minor={isMinorColour(v.ctx.sc)} />
     </div>
   );
 }

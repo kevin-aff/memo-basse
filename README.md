@@ -24,8 +24,8 @@ Autres scripts : `npm run build` (typecheck + build de production), `npm run pre
 ## Sections
 
 1. **Gammes** — index visuel (un diagramme par type de gamme, degrés affichés), puis une page
-   par gamme : 12 tonalités, modes, diagramme de position, manche complet 0–19, écoute audio et
-   4 fiches théoriques.
+   par gamme : 12 tonalités, modes, diagramme de position, manche complet 0–19, écoute audio,
+   4 fiches théoriques et les **morceaux du répertoire** jouables dans la tonalité affichée.
 2. **Cercle des quintes** — roue à 3 anneaux en secteurs pleins (majeurs / mineurs relatifs /
    diminué) avec fenêtre de tonalité : armure, accords diatoniques (triades ou tétrades), cadence
    II-V-I, tonalités voisines. Chaque secteur sonne au clic — note seule, arpège ou accord plaqué ;
@@ -87,6 +87,20 @@ portage React Native / Expo.
   la navigation repart du menu à chaque ouverture.
 - **Notation des degrés.** `DEGREE_STYLE` dans `src/config.ts` bascule entre `R ᐃ2 ♭3 p4`
   et `1 2 ♭3 4` (prop `degreeStyle` de la référence de design).
+
+## Répertoire
+
+`repertoire_gammes.csv`, à la racine, est la source de vérité : éditez-le et la page se recharge.
+Il est lu au build (`?raw`) puis analysé par `src/data/repertoire.ts` — pas de dépendance CSV.
+
+La colonne `Tonalité` est saisie à la main et le lecteur en tient compte : les annotations entre
+parenthèses sont ignorées (`Sol (doigté)`), les fiches qui citent deux tonalités sont rattachées
+aux deux (`Si min (couplet) / Ré (refrain)`), et les modes sont reconnus (`Ré dorien → Mib` donne
+ré mineur *et* mi bémol majeur). Un morceau apparaît sous une tonalité si la hauteur de sa tonique
+et sa couleur — majeure ou mineure — correspondent à la gamme affichée.
+
+Si une valeur de tonalité devient illisible pour le lecteur, elle est collectée dans
+`UNPARSED_KEYS` plutôt que d'être silencieusement perdue.
 
 ## Écarts assumés par rapport au prototype
 

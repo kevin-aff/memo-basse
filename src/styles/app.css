@@ -1076,6 +1076,90 @@ a:hover {
   color: var(--ink);
 }
 
+/* ---------- Répertoire ---------- */
+
+.repertoire__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.repertoire__empty {
+  font-size: 14px;
+  color: var(--dim);
+  line-height: 1.5;
+}
+
+.song-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2px 18px;
+}
+
+.song-list.is-hidden {
+  display: none;
+}
+
+.song {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.song__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.song__title {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.song__stats {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-shrink: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+  white-space: nowrap;
+}
+
+.song__diff {
+  letter-spacing: 0.06em;
+  color: var(--accent);
+}
+
+.song__meta {
+  font-size: 12.5px;
+  color: var(--dim);
+}
+
+.song__prog {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  padding-top: 2px;
+}
+
+.song__notes {
+  font-size: 12px;
+  color: var(--dim);
+  font-style: italic;
+}
+
 /* ---------- Tableau des accords diatoniques ---------- */
 
 .chord-switch {

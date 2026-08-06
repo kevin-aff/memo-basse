@@ -99,6 +99,16 @@ export function modeScale(
   };
 }
 
+/**
+ * Couleur de la gamme : mineure si elle porte une tierce mineure et pas de tierce
+ * majeure. La blues majeure contient les deux (♭3 de passage) et reste majeure.
+ */
+export function isMinorColour(sc: Scale): boolean {
+  const has = new Set(sc.semis.map((v) => v % 12));
+  if (has.has(4)) return false;
+  return has.has(3);
+}
+
 /** Formule de la gamme en tons : `1  –  ½  –  1…` */
 export function formula(sc: Scale): string {
   const t: string[] = [];
