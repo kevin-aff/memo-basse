@@ -3,5 +3,7 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  server: { host: true },
+  // `host` expose le serveur sur le réseau local (téléphone, tablette) ;
+  // `open` ouvre le navigateur au démarrage de `npm run dev`.
+  server: { host: true, open: true },
 });
