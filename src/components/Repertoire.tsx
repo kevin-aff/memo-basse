@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { songsFor, songsForOtherQuality } from '../data/repertoire';
-import type { Song } from '../data/repertoire';
+import type { SongMatch } from '../data/repertoire';
 import { KEYS } from '../music/constants';
 import { cx } from './ui';
 
@@ -16,11 +16,18 @@ function keyLabel(pc: number, minor: boolean): string {
 const difficulte = (n: number): string =>
   n > 0 ? '●'.repeat(Math.min(n, 5)) + '○'.repeat(Math.max(0, 5 - n)) : '';
 
-function SongRow({ song }: { song: Song }) {
+function SongRow({ song, viaPenta }: SongMatch) {
   return (
     <li className="song">
       <div className="song__head">
-        <span className="song__title">{song.titre}</span>
+        <span className="song__title">
+          {song.titre}
+          {viaPenta ? (
+            <span className="song__tag" title={`Penta utile : ${song.penta}`}>
+              penta
+            </span>
+          ) : null}
+        </span>
         <span className="song__stats">
           {song.tempo ? <span className="song__tempo">{song.tempo} BPM</span> : null}
           {song.difficulte ? (
@@ -73,8 +80,8 @@ export function Repertoire({ pc, minor }: { pc: number; minor: boolean }) {
 
       {songs.length ? (
         <ul className={cx('song-list', !open && 'is-hidden')}>
-          {songs.map((s) => (
-            <SongRow key={s.titre + s.artiste} song={s} />
+          {songs.map((m) => (
+            <SongRow key={m.song.titre + m.song.artiste} song={m.song} viaPenta={m.viaPenta} />
           ))}
         </ul>
       ) : (

@@ -1,8 +1,12 @@
 import raw from '../../repertoire_gammes.csv?raw';
 
+/** D'où vient le rattachement : la tonalité du morceau, ou la penta qui fonctionne dessus. */
+export type KeySource = 'tonalite' | 'penta';
+
 export interface SongKey {
   pc: number;
   minor: boolean;
+  source: KeySource;
 }
 
 export interface Song {
@@ -17,8 +21,14 @@ export interface Song {
   progression: string;
   penta: string;
   notes: string;
-  /** tonalités reconnues — plusieurs quand la fiche en mentionne plusieurs */
+  /** tonalités reconnues, colonnes Tonalité et Penta_utile réunies */
   keys: SongKey[];
+}
+
+export interface SongMatch {
+  song: Song;
+  /** le morceau ne ressort que par la penta, pas par sa tonalité */
+  viaPenta: boolean;
 }
 
 /** CSV minimal mais correct : guillemets, virgules et retours à la ligne échappés. */
@@ -98,7 +108,7 @@ const KEY_RE = /^(do|ré|re|mi|fa|sol|la|si)\s*(#|b|♯|♭)?\s*(.*)$/i;
  * (`Sol (doigté)`), citer deux tonalités (`Mi min / Sol`, `Si min (couplet) / Ré (refrain)`)
  * ou nommer un mode (`Ré dorien → Mib`). Renvoie toutes les tonalités reconnues.
  */
-export function parseTonalite(value: string): SongKey[] {
+export function parseTonalite(value: string, source: KeySource = 'tonalite'): SongKey[] {
   // Les parenthèses d'abord : elles peuvent contenir un « / » qui n'est pas un séparateur.
   const cleaned = value.replace(/\([^)]*\)/g, ' ');
   const out: SongKey[] = [];
@@ -115,9 +125,18 @@ export function parseTonalite(value: string): SongKey[] {
     const mode = Object.keys(MODES_FR).find((k) => rest.includes(k));
     const minor = mode ? MODES_FR[mode] : /\bmin/.test(rest) || /\bmineur/.test(rest);
 
-    if (!out.some((k) => k.pc === pc && k.minor === minor)) out.push({ pc, minor });
+    if (!out.some((k) => k.pc === pc && k.minor === minor)) out.push({ pc, minor, source });
   });
 
+  return out;
+}
+
+/** Réunit les deux colonnes ; la tonalité l'emporte quand elles se recouvrent. */
+function mergeKeys(tonalite: SongKey[], penta: SongKey[]): SongKey[] {
+  const out = [...tonalite];
+  penta.forEach((k) => {
+    if (!out.some((x) => x.pc === k.pc && x.minor === k.minor)) out.push(k);
+  });
   return out;
 }
 
@@ -142,8 +161,10 @@ function buildSongs(): { songs: Song[]; unparsed: string[] } {
   rows.slice(1).forEach((r) => {
     const at = (i: number): string => (i >= 0 ? (r[i] ?? '').trim() : '');
     const tonalite = at(iTon);
-    const keys = parseTonalite(tonalite);
-    if (!keys.length && tonalite) unparsed.push(tonalite);
+    const penta = at(iPenta);
+    const fromTon = parseTonalite(tonalite);
+    const keys = mergeKeys(fromTon, parseTonalite(penta, 'penta'));
+    if (!fromTon.length && tonalite) unparsed.push(tonalite);
     songs.push({
       titre: at(iTitre),
       artiste: at(iArtiste),
@@ -153,7 +174,7 @@ function buildSongs(): { songs: Song[]; unparsed: string[] } {
       tempo: at(iTempo),
       difficulte: Number.parseInt(at(iDiff), 10) || 0,
       progression: at(iProg),
-      penta: at(iPenta),
+      penta,
       notes: at(iNotes),
       keys,
     });
@@ -173,13 +194,15 @@ export const UNPARSED_KEYS: string[] = built.unparsed;
  *
  * @param minor la gamme courante a une tierce mineure
  */
-export function songsFor(pc: number, minor: boolean): Song[] {
-  return SONGS.filter((s) => s.keys.some((k) => k.pc === pc && k.minor === minor)).sort(
-    (a, b) => (Number(a.annee) || 0) - (Number(b.annee) || 0),
-  );
+export function songsFor(pc: number, minor: boolean): SongMatch[] {
+  return SONGS.flatMap((song) => {
+    const hit = song.keys.filter((k) => k.pc === pc && k.minor === minor);
+    if (!hit.length) return [];
+    return [{ song, viaPenta: !hit.some((k) => k.source === 'tonalite') }];
+  }).sort((a, b) => (Number(a.song.annee) || 0) - (Number(b.song.annee) || 0));
 }
 
 /** Même tonique, couleur opposée — proposé quand la tonalité exacte ne donne rien. */
-export function songsForOtherQuality(pc: number, minor: boolean): Song[] {
+export function songsForOtherQuality(pc: number, minor: boolean): SongMatch[] {
   return songsFor(pc, !minor);
 }
