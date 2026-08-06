@@ -973,6 +973,18 @@ a:hover {
   fill-opacity: 0.7;
 }
 
+/* Autour d'un secteur, l'indicateur de focus par contour du navigateur est dessiné
+   noir cerclé de blanc et suit mal la forme : on l'ancre sur le tracé lui-même. */
+.wedge:focus {
+  outline: none;
+}
+
+.wedge:focus-visible {
+  outline: none;
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+
 .circle-hub {
   fill: var(--surface);
   stroke: var(--line);

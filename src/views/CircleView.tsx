@@ -105,6 +105,10 @@ export function CircleView(props: CircleViewProps) {
                     onClick={() => hit(n)}
                     onDoubleClick={() => lockOn(n)}
                     onKeyDown={(e) => onKey(e, n)}
+                    // Empêche la prise de focus à la souris : sinon le dernier secteur
+                    // cliqué garde l'anneau de focus du navigateur. La tabulation, elle,
+                    // focalise toujours et reçoit son propre indicateur.
+                    onMouseDown={(e) => e.preventDefault()}
                   />
                 )),
               )}
