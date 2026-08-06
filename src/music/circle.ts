@@ -1,3 +1,4 @@
+import type { ChordQuality } from '../audio/engine';
 import { chords } from './chords';
 import { FLAT, KEYS, SHARP } from './constants';
 import { scaleById } from './scales';
@@ -27,29 +28,38 @@ const SIG: Record<number, number> = {
 const majOf = (p: number): string => KEYS.filter((k) => k.pc === ((p % 12) + 12) % 12)[0].maj;
 const minOf = (p: number): string => KEYS.filter((k) => k.pc === ((p % 12) + 12) % 12)[0].min;
 
-export interface CircleNode {
-  label: string;
-  sub: string;
-  /** position en pourcentage dans la roue */
-  x: string;
-  y: string;
-  isTonic: boolean;
-  inKey: boolean;
-  plain: boolean;
-  /** tonalité sélectionnée au clic */
-  target: { pc: number; min: boolean };
-}
+export type Ring = 'maj' | 'min' | 'dim';
 
-export interface CircleVals {
-  cTonic: string;
-  cSigShort: string;
-  circleMaj: CircleNode[];
-  circleMin: CircleNode[];
-  circleDim: CircleNode[];
-  cPanels: Panel[];
-  /** cible du bouton « Travailler … dans Gammes » */
-  openTarget: { scaleId: ScaleId; keyPc: number };
-}
+/**
+ * Géométrie des anneaux dans le repère SVG `viewBox="0 0 100 100"` :
+ * rayons interne/externe du secteur, et rayon où se pose le libellé HTML.
+ */
+const RINGS: Record<Ring, { ri: number; ro: number; lr: number }> = {
+  maj: { ri: 36, ro: 49, lr: 42.5 },
+  min: { ri: 24, ro: 36, lr: 30 },
+  dim: { ri: 12, ro: 24, lr: 18 },
+};
+
+/** Rayon du disque central. */
+export const HUB_R = 12;
+
+const P = (a: number, r: number): string => {
+  const t = ((a - 90) * Math.PI) / 180;
+  return (50 + r * Math.cos(t)).toFixed(2) + ',' + (50 + r * Math.sin(t)).toFixed(2);
+};
+
+/** Secteur de 30° : arc externe, segment, arc interne en sens inverse. */
+const wedge = (i: number, ri: number, ro: number): string => {
+  const a0 = i * 30 - 15;
+  const a1 = i * 30 + 15;
+  return (
+    'M' + P(a0, ro) +
+    ' A' + ro + ',' + ro + ' 0 0 1 ' + P(a1, ro) +
+    ' L' + P(a1, ri) +
+    ' A' + ri + ',' + ri + ' 0 0 0 ' + P(a0, ri) +
+    ' Z'
+  );
+};
 
 const pos = (i: number, R: number): { x: string; y: string } => {
   const a = ((-90 + i * 30) * Math.PI) / 180;
@@ -59,13 +69,46 @@ const pos = (i: number, R: number): { x: string; y: string } => {
   };
 };
 
+export interface CircleNode {
+  label: string;
+  sub: string;
+  /** tracé SVG du secteur */
+  d: string;
+  /** position du libellé HTML superposé, en pourcentage */
+  lx: string;
+  ly: string;
+  isTonic: boolean;
+  inKey: boolean;
+  plain: boolean;
+  /** tonalité sélectionnée au clic */
+  target: { pc: number; min: boolean };
+  /** accord joué au clic */
+  rootPc: number;
+  quality: ChordQuality;
+}
+
+export interface CircleVals {
+  cTonic: string;
+  cSigShort: string;
+  circleMaj: CircleNode[];
+  circleMin: CircleNode[];
+  circleDim: CircleNode[];
+  cPanels: Panel[];
+  /** hauteur de la tonique courante — ancre du voicing joué au clic */
+  basePc: number;
+  /** cible du bouton « Travailler … dans Gammes » */
+  openTarget: { scaleId: ScaleId; keyPc: number };
+}
+
 /**
  * Contenu complet de la section Cercle des quintes pour une tonalité donnée.
  *
  * @param pcMaj hauteur de la tonalité majeure de référence (le secteur du cercle)
  * @param isMin la tonalité courante est la relative mineure de ce secteur
+ * @param sev   accords diatoniques en tétrades (4 notes) plutôt qu'en triades
+ * @param num   notation des degrés en chiffres plutôt qu'en symboles
  */
-export function circleVals(pcMaj: number, isMin: boolean): CircleVals {
+export function circleVals(pcMaj: number, isMin: boolean, sev: boolean, num = false): CircleVals {
   const relPc = (pcMaj + 9) % 12;
   const n = SIG[pcMaj];
   const sigShort =
@@ -89,25 +132,34 @@ export function circleVals(pcMaj: number, isMin: boolean): CircleVals {
   const k = (pcMaj * 7) % 12;
   const rel = (i: number): number => (((i - k) % 12) + 12) % 12;
 
+  /** Suffixe des accords mineurs sur la roue, selon triades / tétrades. */
+  const mn = sev ? 'm7' : 'm';
+
   const mk = (
     i: number,
-    R: number,
+    ring: Ring,
     label: string,
     sub: string,
     inKey: boolean,
     isTonic: boolean,
     target: { pc: number; min: boolean },
+    rootPc: number,
+    quality: ChordQuality,
   ): CircleNode => {
-    const o = pos(i, R);
+    const g = RINGS[ring];
+    const lo = pos(i, g.lr);
     return {
       label,
       sub: inKey ? sub : '',
-      x: o.x,
-      y: o.y,
+      d: wedge(i, g.ri, g.ro),
+      lx: lo.x,
+      ly: lo.y,
       isTonic,
       inKey: inKey && !isTonic,
       plain: !inKey && !isTonic,
       target,
+      rootPc,
+      quality,
     };
   };
 
@@ -125,27 +177,31 @@ export function circleVals(pcMaj: number, isMin: boolean): CircleVals {
     circleMaj.push(
       mk(
         i,
-        42.5,
+        'maj',
         majOf(p),
-        (d === 0 ? 'I' : d === 1 ? 'V' : 'IV') + ' · ' + (d === 1 ? '7' : 'maj7'),
+        (d === 0 ? 'I' : d === 1 ? 'V' : 'IV') + (sev ? ' · ' + (d === 1 ? '7' : 'maj7') : ''),
         inK,
         !isMin && d === 0,
         asMaj,
+        p,
+        inK && d === 1 ? 'dom7' : 'maj7',
       ),
     );
     circleMin.push(
       mk(
         i,
-        29,
+        'min',
         minOf((p + 9) % 12) + 'm',
-        (d === 0 ? 'vi' : d === 1 ? 'iii' : 'ii') + ' · m7',
+        (d === 0 ? 'vi' : d === 1 ? 'iii' : 'ii') + ' · ' + mn,
         inK,
         isMin && d === 0,
         { pc: p, min: true },
+        (p + 9) % 12,
+        'm7',
       ),
     );
     circleDim.push(
-      mk(i, 17, majOf(((i + 5) * 7) % 12) + '°', 'vii° · m7' + FLAT + '5', d === 0, false, asMaj),
+      mk(i, 'dim', majOf(((i + 5) * 7) % 12) + '°', 'vii°', d === 0, false, asMaj, ((i + 5) * 7) % 12, 'm7b5'),
     );
   }
 
@@ -188,7 +244,11 @@ export function circleVals(pcMaj: number, isMin: boolean): CircleVals {
         },
       ],
     },
-    { title: 'Accords diatoniques', lines: chords(scale, pc, tonic) ?? [] },
+    {
+      title: 'Accords diatoniques',
+      lines: [],
+      table: chords(scale, pc, tonic, num, sev) ?? [],
+    },
     {
       title: 'Cadence II - V - I',
       big: cadence,
@@ -207,6 +267,7 @@ export function circleVals(pcMaj: number, isMin: boolean): CircleVals {
     circleMin,
     circleDim,
     cPanels,
+    basePc: pcMaj,
     openTarget: { scaleId: isMin ? 'min' : 'maj', keyPc: pc },
   };
 }

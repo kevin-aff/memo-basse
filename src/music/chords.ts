@@ -1,17 +1,48 @@
-import { FLAT, KEYS, QUAL, ROMAN, TRI } from './constants';
-import { spell } from './spelling';
-import type { InfoLine, Scale } from './types';
+import { FLAT, KEYS, QUAL, QUAL3, ROMAN, TRI } from './constants';
+import { degLabel, spell } from './spelling';
+import type { DiatonicChord, InfoLine, Scale } from './types';
 
-/** Accords diatoniques d'une gamme à 7 notes. `null` pour les autres gammes. */
-export function chords(sc: Scale, pc: number, tonic: string): InfoLine[] | null {
+/** `R` → `8`, `ᐃ2` → `ᐃ9`, `p4` → `p11`… : degré prolongé au-delà de l'octave. */
+const octaveUp = (t: string): string =>
+  t === 'R' ? '8' : t.replace(/\d+$/, (m) => String(+m + 7));
+
+/**
+ * Les 7 accords diatoniques d'une gamme à 7 notes. `null` pour les autres gammes.
+ *
+ * @param num notation des degrés en chiffres plutôt qu'en symboles
+ * @param sev tétrades (4 notes) plutôt que triades (3 notes)
+ */
+export function chords(
+  sc: Scale,
+  pc: number,
+  tonic: string,
+  num = false,
+  sev = true,
+): DiatonicChord[] | null {
   if (sc.semis.length !== 8) return null;
   const s = sc.semis.slice(0, 7);
   const s7 = s.concat(s.map((x) => x + 12));
-  const out: InfoLine[] = [];
+  const offs = sev ? [0, 2, 4, 6] : [0, 2, 4];
+  const out: DiatonicChord[] = [];
+
   for (let i = 0; i < 7; i++) {
     const r = s7[i];
-    const k = `${s7[i + 2] - r}-${s7[i + 4] - r}-${s7[i + 6] - r}`;
-    out.push({ l: ROMAN[i], v: spell(tonic, i + 1, pc + r) + (QUAL[k] ?? '') });
+    const iv = offs
+      .slice(1)
+      .map((o) => s7[i + o] - r)
+      .join('-');
+    const q = (sev ? QUAL[iv] : QUAL3[iv]) ?? '';
+    const acc = spell(tonic, i + 1, pc + r) + q;
+    const notes = offs.map((o) => spell(tonic, ((i + o) % 7) + 1, pc + s7[i + o])).join('  ');
+    // Degrés relatifs à la tonique de la tonalité, pas à la fondamentale de l'accord :
+    // en do, Dm7 se lit 2 4 6 8.
+    const degs = offs
+      .map((o) => {
+        const t = degLabel(((i + o) % 7) + 1, s7[i + o], num);
+        return s7[i + o] >= 12 ? octaveUp(t) : t;
+      })
+      .join('  ');
+    out.push({ rn: ROMAN[i], acc, notes, degs, l: ROMAN[i], v: acc });
   }
   return out;
 }

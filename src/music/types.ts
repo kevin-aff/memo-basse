@@ -71,10 +71,27 @@ export interface InfoLine {
   v: string;
 }
 
+/**
+ * Un accord diatonique. `l`/`v` gardent la forme « ligne de fiche » utilisée par la
+ * page d'une gamme ; `rn`/`acc`/`notes`/`degs` alimentent le tableau du cercle.
+ */
+export interface DiatonicChord extends InfoLine {
+  /** chiffre romain */
+  rn: string;
+  /** nom de l'accord */
+  acc: string;
+  /** notes orthographiées */
+  notes: string;
+  /** degrés relatifs à la tonique de la tonalité, prolongés au-delà de l'octave */
+  degs: string;
+}
+
 export interface Panel {
   title: string;
   big?: string;
   lines: InfoLine[];
+  /** rendu en tableau à 4 colonnes plutôt qu'en lignes libellé/valeur */
+  table?: DiatonicChord[];
 }
 
 /** Gamme d'un mode : la gamme tournée, sa tonique orthographiée et son nom. */

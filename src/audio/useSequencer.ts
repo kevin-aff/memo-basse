@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getCtx, scheduleClick, scheduleTone } from './engine';
+import { getCtx, scheduleClick, schedulePiano } from './engine';
 
 /** Avance de planification sur l'horloge audio, en secondes. */
 const LOOKAHEAD = 0.15;
@@ -94,7 +94,7 @@ export function useSequencer(opts: SequencerOptions): Sequencer {
       const i = b % n;
       const t = beatTime(b);
       if (sound === 'click') scheduleClick(ac, i % 4 === 0, t);
-      else scheduleTone(ac, midis[i], t, Math.min(0.9, spb.current * 0.9));
+      else schedulePiano(ac, midis[i], t, Math.min(0.9, spb.current * 0.9));
       nextBeat.current = b + 1;
     }
   };

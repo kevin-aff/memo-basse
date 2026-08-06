@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  html, body { margin:0; padding:0; }
+  :root{
+    --bg:oklch(0.19 0.012 265); --surface:oklch(0.235 0.014 265); --surface2:oklch(0.275 0.014 265);
+    --line:oklch(0.42 0.015 265); --ink:oklch(0.95 0.008 90); --dim:oklch(0.7 0.012 265);
+    --accent:oklch(0.63 0.2 28); --accent-ink:oklch(0.98 0.01 90);
+    --dot:oklch(0.96 0.006 90); --dot-ink:oklch(0.2 0.012 265);
+    --display:'Space Grotesk', sans-serif; --radius:18px; --cardborder:1px solid oklch(0.34 0.014 265);
+  }
+  [data-theme="carnet"]{
+    --bg:oklch(0.955 0.014 85); --surface:oklch(0.99 0.006 85); --surface2:oklch(0.93 0.016 85);
+    --line:oklch(0.75 0.018 70); --ink:oklch(0.24 0.02 60); --dim:oklch(0.5 0.02 60);
+    --accent:oklch(0.55 0.19 28); --accent-ink:oklch(0.99 0.01 90);
+    --dot:oklch(0.22 0.02 60); --dot-ink:oklch(0.97 0.008 85);
+    --display:'Instrument Serif', serif; --radius:4px; --cardborder:1px solid oklch(0.8 0.02 70);
+  }
+  a{color:var(--accent);} a:hover{color:var(--ink);}
+  button{font-family:inherit;}
+</style>
+</helmet>
+<div data-theme="{{ theme }}" style="min-height:100vh; background:var(--bg); color:var(--ink); font-family:'IBM Plex Sans', sans-serif; -webkit-font-smoothing:antialiased;">
+
+  <div style="max-width:1180px; margin:0 auto; padding:20px 18px 72px; display:flex; flex-direction:column; gap:22px;">
+
+    <header style="display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:14px; padding-bottom:16px; border-bottom:1px solid var(--line);">
+      <div style="display:flex; flex-direction:column; gap:4px;">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--dim);">Basse 4 cordes · E A D G</div>
+        <h1 style="margin:0; font-family:var(--display); font-size:34px; font-weight:500; letter-spacing:-0.01em; line-height:1;">Mémo basse</h1>
+      </div>
+      <div style="display:flex; gap:6px; padding:4px; border:var(--cardborder); border-radius:999px; background:var(--surface);">
+        <sc-for list="{{ themes }}" as="t" hint-placeholder-count="2">
+          <sc-if value="{{ t.sel }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ t.pick }}" style="border:none; cursor:pointer; padding:9px 16px; border-radius:999px; background:var(--accent); color:var(--accent-ink); font-size:12px; font-weight:600; letter-spacing:0.02em;">{{ t.label }}</button>
+          </sc-if>
+          <sc-if value="{{ t.unsel }}">
+            <button onClick="{{ t.pick }}" style="border:none; cursor:pointer; padding:9px 16px; border-radius:999px; background:transparent; color:var(--dim); font-size:12px; font-weight:600; letter-spacing:0.02em;" style-hover="color:var(--ink);">{{ t.label }}</button>
+          </sc-if>
+        </sc-for>
+      </div>
+    </header>
+
+    <sc-if value="{{ isMenu }}" hint-placeholder-val="{{ true }}">
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:16px; padding-top:8px;">
+        <button onClick="{{ openGammes }}" style="cursor:pointer; text-align:left; display:flex; flex-direction:column; gap:10px; padding:34px 28px; min-height:200px; background:var(--surface); border:var(--cardborder); border-radius:var(--radius); color:var(--ink); transition:transform .15s ease, background .15s ease;" style-hover="background:var(--surface2); transform:translateY(-2px);">
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--dim);">01</span>
+          <span style="font-family:var(--display); font-size:34px; font-weight:500; line-height:1.05;">Gammes</span>
+          <span style="font-size:15px; color:var(--dim); line-height:1.5; max-width:40ch;">Motifs d'une octave, modes, 12 tonalités et manche complet.</span>
+        </button>
+        <button onClick="{{ openCercle }}" style="cursor:pointer; text-align:left; display:flex; flex-direction:column; gap:10px; padding:34px 28px; min-height:200px; background:var(--surface); border:var(--cardborder); border-radius:var(--radius); color:var(--ink); transition:transform .15s ease, background .15s ease;" style-hover="background:var(--surface2); transform:translateY(-2px);">
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--dim);">02</span>
+          <span style="font-family:var(--display); font-size:34px; font-weight:500; line-height:1.05;">Cercle des quintes</span>
+          <span style="font-size:15px; color:var(--dim); line-height:1.5; max-width:40ch;">Armures, tonalités voisines et relatives mineures.</span>
+        </button>
+        <button onClick="{{ openTrain }}" style="cursor:pointer; text-align:left; display:flex; flex-direction:column; gap:10px; padding:34px 28px; min-height:200px; background:var(--surface); border:var(--cardborder); border-radius:var(--radius); color:var(--ink); transition:transform .15s ease, background .15s ease;" style-hover="background:var(--surface2); transform:translateY(-2px);">
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--dim);">03</span>
+          <span style="font-family:var(--display); font-size:34px; font-weight:500; line-height:1.05;">Entraînement</span>
+          <span style="font-size:15px; color:var(--dim); line-height:1.5; max-width:40ch;">Répétition des gammes au tempo, mode par mode.</span>
+        </button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isTrain }}">
+      <div style="display:flex; flex-direction:column; gap:18px;">
+
+        <div style="display:flex; flex-wrap:wrap; align-items:center; gap:14px;">
+          <button onClick="{{ goMenu }}" style="cursor:pointer; border:var(--cardborder); background:var(--surface); color:var(--ink); border-radius:999px; padding:10px 18px; font-size:13px; font-weight:600; white-space:nowrap; flex-shrink:0;" style-hover="background:var(--surface2);">← Menu</button>
+          <h2 style="margin:0; font-family:var(--display); font-size:30px; font-weight:500; line-height:1;">Répétition des gammes</h2>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--dim);">Gamme</div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:8px;">
+            <sc-for list="{{ tScales }}" as="s" hint-placeholder-count="8">
+              <sc-if value="{{ s.sel }}">
+                <button onClick="{{ s.pick }}" style="cursor:pointer; padding:13px 14px; border-radius:12px; border:1px solid var(--accent); background:var(--accent); color:var(--accent-ink); font-size:14px; font-weight:600; text-align:left;">{{ s.name }}</button>
+              </sc-if>
+              <sc-if value="{{ s.unsel }}">
+                <button onClick="{{ s.pick }}" style="cursor:pointer; padding:13px 14px; border-radius:12px; border:var(--cardborder); background:var(--surface); color:var(--ink); font-size:14px; font-weight:600; text-align:left;" style-hover="background:var(--surface2);">{{ s.name }}</button>
+              </sc-if>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-wrap:wrap; gap:18px;">
+          <div style="flex:1 1 320px; display:flex; flex-direction:column; gap:8px;">
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--dim);">Tonalité</div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(64px, 1fr)); gap:8px;">
+              <sc-for list="{{ tKeys }}" as="k" hint-placeholder-count="12">
+                <sc-if value="{{ k.sel }}">
+                  <button onClick="{{ k.pick }}" style="cursor:pointer; padding:13px 4px; border-radius:12px; border:1px solid var(--accent); background:var(--accent); color:var(--accent-ink); font-family:'IBM Plex Mono',monospace; font-size:16px; font-weight:600;">{{ k.name }}</button>
+                </sc-if>
+                <sc-if value="{{ k.unsel }}">
+                  <button onClick="{{ k.pick }}" style="cursor:pointer; padding:13px 4px; border-radius:12px; border:var(--cardborder); background:var(--surface); color:var(--ink); font-family:'IBM Plex Mono',monospace; font-size:16px; font-weight:600;" style-hover="background:var(--surface2);">{{ k.name }}</button>
+                </sc-if>
+              </sc-for>
+            </div>
+          </div>
+          <div style="flex:0 1 240px; display:flex; flex-direction:column; gap:8px;">
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--dim);">Fondamentale sur</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+              <sc-for list="{{ tRoots }}" as="r" hint-placeholder-count="2">
+                <sc-if value="{{ r.sel }}">
+                  <button onClick="{{ r.pick }}" style="cursor:pointer; padding:13px 8px; border-radius:12px; border:1px solid var(--accent); background:var(--accent); color:var(--accent-ink); font-size:13px; font-weight:600;">{{ r.label }}</button>
+                </sc-if>
+                <sc-if value="{{ r.unsel }}">
+                  <button onClick="{{ r.pick }}" style="cursor:pointer; padding:13px 8px; border-radius:12px; border:var(--cardborder); background:var(--surface); color:var(--ink); font-size:13px; font-weight:600;" style-hover="background:var(--surface2);">{{ r.label }}</button>
+                </sc-if>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+
+        <sc-if value="{{ tHasModes }}">
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--dim);">Exercice</div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:10px;">
+              <sc-if value="{{ tExOne }}">
+                <button onClick="{{ pickOne }}" style="cursor:pointer; text-align:left; padding:16px; border-radius:14px; border:1px solid var(--accent); background:var(--accent); color:var(--accent-ink); display:flex; flex-direction:column; gap:4px;">
+                  <span style="font-size:15px; font-weight:600;">Montée / descente sur un mode</span>
+                  <span style="font-size:12px; opacity:0.85;">Un seul motif, en boucle si besoin</span>
+                </button>
+                <button onClick="{{ pickCycle }}" style="cursor:pointer; text-align:left; padding:16px; border-radius:14px; border:var(--cardborder); background:var(--surface); color:var(--ink); display:flex; flex-direction:column; gap:4px;" style-hover="background:var(--surface2);">
+                  <span style="font-size:15px; font-weight:600;">Cycle des modes</span>
+                  <span style="font-size:12px; color:var(--dim);">Mode I, II, III… puis retour en sens inverse</span>
+                </button>
+              </sc-if>
+              <sc-if value="{{ tExCycle }}">
+                <button onClick="{{ pickOne }}" style="cursor:pointer; text-align:left; padding:16px; border-radius:14px; border:var(--cardborder); background:var(--surface); color:var(--ink); display:flex; flex-direction:column; gap:4px;" style-hover="background:var(--surface2);">
+                  <span style="font-size:15px; font-weight:600;">Montée / descente sur un mode</span>
+                  <span style="font-size:12px; color:var(--dim);">Un seul motif, en boucle si besoin</span>
+                </button>
+                <button onClick="{{ pickCycle }}" style="cursor:pointer; text-align:left; padding:16px; border-radius:14px; border:1px solid var(--accent); background:var(--accent); color:var(--accent-ink); display:flex; flex-direction:column; gap:4px;">
+                  <span style="font-size:15px; font-weight:600;">Cycle des modes</span>
+                  <span style="font-size:12px; opacity:0.85;">Mode I, II, III… puis retour en sens inverse</span>
+                </button>
+              </sc-if>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:10px;">
+              <sc-if value="{{ tFullOff }}">
+                <button onClick="{{ setOctave }}" style="cursor:pointer; text-align:left; padding:16px; border-radius:14px; border:1px solid var(--accent); background:var(--accent); color:var(--accent-ink); display:flex; flex-direction:column; gap:4px;">
+                  <span style="font-size:15px; font-weight:600;">Étendue : une octave</span>
+                  <span style="font-size:12px; opacity:0.85;">Le motif seul, fondamentale à fondamentale</span>
+                </button>
+                <button onClick="{{ setFull }}" style="cursor:pointer; text-align:left; padding:16px; border-radius:14px; border:var(--cardborder); background:var(--surface); color:var(--ink); display:flex; flex-direction:column; gap:4px;" style-hover="background:var(--surface2);">
+                  <span style="font-size:15px; font-weight:600;">Étendue : position 4 cordes</span>
+                  <span style="font-size:12px; color:var(--dim);">Toutes les notes de la position, de la plus grave à la plus aiguë</span>
+                </button>
+              </sc-if>
+              <sc-if value="{{ tFullOn }}">
+                <button onClick="{{ setOctave }}" style="cursor:pointer; text-align:left; padding:16px; border-radius:14px; border:var(--cardborder); background:var(--surface); color:var(--ink); display:flex; flex-direction:column; gap:4px;" style-hover="background:var(--surface2);">
+                  <span style="font-size:15px; font-weight:600;">Étendue : une octave</span>
+                  <span style="font-size:12px; color:var(--dim);">Le motif seul, fondamentale à fondamentale</span>
+                </button>
+                <button onClick="{{ setFull }}" style="cursor:pointer; text-align:left; padding:16px; border-radius:14px; border:1px solid var(--accent); background:var(--accent); color:var(--accent-ink); display:flex; flex-direction:column; gap:4px;">
+                  <span style="font-size:15px; font-weight:600;">Étendue : position 4 cordes</span>
+                  <span style="font-size:12px; opacity:0.85;">Toutes les notes de la position, de la plus grave à la plus aiguë</span>
+                </button>
+              </sc-if>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:8px;">
+              <sc-for list="{{ tModes }}" as="m" hint-placeholder-count="7">
+                <sc-if value="{{ m.sel }}">
+                  <button onClick="{{ m.pick }}" style="cursor:pointer; text-align:left; padding:11px 13px; border-radius:12px; border:1px solid var(--accent); background:var(--accent); color:var(--accent-ink); display:flex; flex-direction:column; gap:2px;">
+                    <span style="font-family:'IBM Plex Mono',monospace; font-size:15px; font-weight:600;">{{ m.tonic }}</span>
+                    <span style="font-size:11px; opacity:0.85;">{{ m.name }}</span>
+                  </button>
+                </sc-if>
+                <sc-if value="{{ m.unsel }}">
+                  <button onClick="{{ m.pick }}" style="cursor:pointer; text-align:left; padding:11px 13px; border-radius:12px; border:var(--cardborder); background:var(--surface); color:var(--ink); display:flex; flex-direction:column; gap:2px;" style-hover="background:var(--surface2);">
+                    <span style="font-family:'IBM Plex Mono',monospace; font-size:15px; font-weight:600;">{{ m.tonic }}</span>
+                    <span style="font-size:11px; color:var(--dim);">{{ m.name }}</span>
+                  </button>
+                </sc-if>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--dim);">Motif</div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:8px;">
+            <sc-for list="{{ tMotifs }}" as="mo" hint-placeholder-count="7">
+              <sc-if value="{{ mo.sel }}">
+                <button onClick="{{ mo.pick }}" style="cursor:pointer; text-align:left; padding:12px 14px; border-radius:12px; border:1px solid var(--accent); background:var(--accent); color:var(--accent-ink); display:flex; flex-direction:column; gap:3px;">
+                  <span style="font-size:14px; font-weight:600;">{{ mo.nom }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; opacity:0.85;">{{ mo.sub }}</span>
+                </button>
+              </sc-if>
+              <sc-if value="{{ mo.unsel }}">
+                <button onClick="{{ mo.pick }}" style="cursor:pointer; text-align:left; padding:12px 14px; border-radius:12px; border:var(--cardborder); background:var(--surface); color:var(--ink); display:flex; flex-direction:column; gap:3px;" style-hover="background:var(--surface2);">
+                  <span style="font-size:14px; font-weight:600;">{{ mo.nom }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--dim);">{{ mo.sub }}</span>
+                </button>
+              </sc-if>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background:var(--surface); border:var(--cardborder); border-radius:var(--radius); padding:22px 20px; display:flex; flex-direction:column; gap:18px;">
+
+          <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:14px;">
+            <div style="display:flex; flex-direction:column; gap:3px;">
+              <span style="font-family:var(--display); font-size:24px; font-weight:500; line-height:1.1;">{{ tTitle }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--dim); letter-spacing:0.08em;">{{ tSub }} · {{ tCounter }}</span>
+            </div>
+            <div style="display:flex; flex-wrap:wrap; align-items:center; gap:10px;">
+              <div style="display:flex; align-items:center; gap:8px; padding:5px 8px; border:var(--cardborder); border-radius:999px; background:var(--surface2);">
+                <button onClick="{{ tempoDown }}" style="cursor:pointer; width:34px; height:34px; border-radius:50%; border:none; background:transparent; color:var(--ink); font-size:19px; font-weight:600;" style-hover="background:var(--surface);">−</button>
+                <span style="min-width:78px; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:15px; font-weight:600; white-space:nowrap;">{{ tempo }} BPM</span>
+                <button onClick="{{ tempoUp }}" style="cursor:pointer; width:34px; height:34px; border-radius:50%; border:none; background:transparent; color:var(--ink); font-size:19px; font-weight:600;" style-hover="background:var(--surface);">+</button>
+              </div>
+              <div style="display:flex; gap:4px; padding:3px; border:var(--cardborder); border-radius:999px; background:var(--surface2);">
+                <sc-if value="{{ soundNotes }}">
+                  <button onClick="{{ setSoundNotes }}" style="cursor:pointer; border:none; padding:8px 14px; border-radius:999px; background:var(--accent); color:var(--accent-ink); font-size:12px; font-weight:600; white-space:nowrap;">Notes jouées</button>
+                  <button onClick="{{ setSoundClick }}" style="cursor:pointer; border:none; padding:8px 14px; border-radius:999px; background:transparent; color:var(--dim); font-size:12px; font-weight:600; white-space:nowrap;" style-hover="color:var(--ink);">Métronome</button>
+                </sc-if>
+                <sc-if value="{{ soundClick }}">
+                  <button onClick="{{ setSoundNotes }}" style="cursor:pointer; border:none; padding:8px 14px; border-radius:999px; background:transparent; color:var(--dim); font-size:12px; font-weight:600; white-space:nowrap;" style-hover="color:var(--ink);">Notes jouées</button>
+                  <button onClick="{{ setSoundClick }}" style="cursor:pointer; border:none; padding:8px 14px; border-radius:999px; background:var(--accent); color:var(--accent-ink); font-size:12px; font-weight:600; white-space:nowrap;">Métronome</button>
+                </sc-if>
+              </div>
+              <button onClick="{{ toggleLoop }}" style="cursor:pointer; border:var(--cardborder); background:var(--surface2); color:var(--ink); border-radius:999px; padding:11px 16px; font-size:13px; font-weight:600; white-space:nowrap; flex-shrink:0;" style-hover="border-color:var(--accent);">{{ loopLabel }}</button>
+              <sc-if value="{{ tIdle }}">
+                <button onClick="{{ tStart }}" style="cursor:pointer; border:none; background:var(--accent); color:var(--accent-ink); border-radius:999px; padding:13px 24px; font-size:14px; font-weight:600; white-space:nowrap; flex-shrink:0;">▶ Démarrer</button>
+              </sc-if>
+              <sc-if value="{{ tRun }}">
+                <button onClick="{{ tStopFn }}" style="cursor:pointer; border:1px solid var(--accent); background:transparent; color:var(--accent); border-radius:999px; padding:13px 24px; font-size:14px; font-weight:600; white-space:nowrap; flex-shrink:0;">■ Arrêter</button>
+              </sc-if>
+            </div>
+          </div>
+
+          <sc-if value="{{ showChips }}">
+            <div style="display:flex; flex-wrap:wrap; gap:6px;">
+              <sc-for list="{{ modeChips }}" as="m" hint-placeholder-count="13">
+                <sc-if value="{{ m.sel }}">
+                  <span style="padding:7px 12px; border-radius:999px; background:var(--accent); color:var(--accent-ink); font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600;">{{ m.label }}</span>
+                </sc-if>
+                <sc-if value="{{ m.unsel }}">
+                  <span style="padding:7px 12px; border-radius:999px; border:var(--cardborder); color:var(--dim); font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600;">{{ m.label }}</span>
+                </sc-if>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--dim); letter-spacing:0.08em;">{{ tPosLabel }}</div>
+
+          <div style="overflow-x:auto; padding-bottom:4px;">
+          <div style="display:flex; align-items:stretch; min-width:{{ tMinWidth }};">
+            <div style="width:26px; display:flex; flex-direction:column;">
+              <sc-for list="{{ tRows }}" as="row" hint-placeholder-count="4">
+                <div style="height:56px; display:flex; align-items:center; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--dim);">{{ row.name }}</div>
+              </sc-for>
+            </div>
+            <sc-if value="{{ tHasNut }}">
+              <div style="flex:0 0 46px; display:flex; flex-direction:column; border-right:5px solid var(--ink);">
+                <sc-for list="{{ tNut }}" as="cell" hint-placeholder-count="4">
+                  <div style="height:56px; position:relative; display:flex; align-items:center; justify-content:center;">
+                    <div style="position:absolute; left:0; right:0; top:50%; height:1px; background:var(--line);"></div>
+                    <sc-if value="{{ cell.isNote }}">
+                      <div style="position:relative; width:44px; height:44px; border-radius:50%; background:var(--dot); color:var(--dot-ink); display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:15px; font-weight:600;">{{ cell.label }}</div>
+                    </sc-if>
+                    <sc-if value="{{ cell.isRoot }}">
+                      <div style="position:relative; width:44px; height:44px; border-radius:50%; background:var(--accent); color:var(--accent-ink); display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:15px; font-weight:600;">{{ cell.label }}</div>
+                    </sc-if>
+                    <sc-if value="{{ cell.isPlay }}">
+                      <div style="position:relative; width:52px; height:52px; border-radius:50%; background:var(--accent); color:var(--accent-ink); box-shadow:0 0 0 4px color-mix(in oklch, var(--accent) 30%, transparent); display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:17px; font-weight:600;">{{ cell.label }}</div>
+                    </sc-if>
+                  </div>
+                </sc-for>
+                <div style="height:23px;"></div>
+              </div>
+            </sc-if>
+            <div style="flex:1; border-left:3px solid var(--line);">
+              <sc-for list="{{ tRows }}" as="row" hint-placeholder-count="4">
+                <div style="display:flex; height:56px;">
+                  <sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="5">
+                    <div style="flex:1 0 46px; min-width:46px; position:relative; display:flex; align-items:center; justify-content:center; border-right:1px solid var(--line);">
+                      <div style="position:absolute; left:0; right:0; top:50%; height:1px; background:var(--line);"></div>
+                      <sc-if value="{{ cell.isNote }}">
+                        <div style="position:relative; width:44px; height:44px; border-radius:50%; background:var(--dot); color:var(--dot-ink); display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:15px; font-weight:600;">{{ cell.label }}</div>
+                      </sc-if>
+                      <sc-if value="{{ cell.isRoot }}">
+                        <div style="position:relative; width:44px; height:44px; border-radius:50%; background:var(--accent); color:var(--accent-ink); display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:15px; font-weight:600;">{{ cell.label }}</div>
+                      </sc-if>
+                      <sc-if value="{{ cell.isPlay }}">
+                        <div style="position:relative; width:52px; height:52px; border-radius:50%; background:var(--accent); color:var(--accent-ink); box-shadow:0 0 0 4px color-mix(in oklch, var(--accent) 30%, transparent); display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:17px; font-weight:600;">{{ cell.label }}</div>
+                      </sc-if>
+                      <sc-if value="{{ cell.isGhost }}">
+                        <div style="position:relative; width:44px; height:44px; border-radius:50%; background:color-mix(in oklch, var(--dot) 20%, transparent); border:1px solid color-mix(in oklch, var(--dot) 35%, transparent); box-sizing:border-box; color:var(--dim); display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:15px; font-weight:600;">{{ cell.label }}</div>
+                      </sc-if>
+                      <sc-if value="{{ cell.isGhostRoot }}">
+                        <div style="position:relative; width:44px; height:44px; border-radius:50%; background:color-mix(in oklch, var(--accent) 22%, transparent); border:1px solid color-mix(in oklch, var(--accent) 55%, transparent); box-sizing:border-box; color:var(--accent); display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:15px; font-weight:600;">{{ cell.label }}</div>
+                      </sc-if>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-for>
+              <div style="display:flex; padding-top:8px;">
+                <sc-for list="{{ tFrets }}" as="f" hint-placeholder-count="5">
+                  <div style="flex:1 0 46px; min-width:46px; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--dim);">{{ f.n }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:14px; padding-top:6px; border-top:1px solid var(--line);">
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--dim);">Tablature de l'exercice · 4/4</div>
+            <div style="overflow-x:auto; display:flex; flex-direction:column; gap:22px;">
+              <sc-for list="{{ tabSystems }}" as="sys" hint-placeholder-count="2">
+                <div style="display:flex; align-items:stretch; min-width:{{ sys.minw }};">
+                  <div style="flex:0 0 20px; display:flex; flex-direction:column; justify-content:center; align-items:center; font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; color:var(--ink); line-height:1.15;">
+                    <span>T</span>
+                    <span>A</span>
+                    <span>B</span>
+                  </div>
+                  <div style="flex:0 0 26px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:21px; font-weight:600; line-height:1.05;">
+                    <span>4</span>
+                    <span>4</span>
+                  </div>
+                  <div style="flex:0 1 {{ sys.width }}; display:flex; border-left:3px solid var(--ink); border-right:3px solid var(--ink);">
+                    <sc-for list="{{ sys.cols }}" as="col" hint-placeholder-count="16">
+                      <div style="flex:1 1 0; min-width:0; position:relative; display:flex; flex-direction:column;">
+                        <sc-if value="{{ col.bar }}">
+                          <div style="position:absolute; right:0; top:0; bottom:0; width:1px; background:var(--line); z-index:1;"></div>
+                        </sc-if>
+                        <sc-for list="{{ col.cells }}" as="c" hint-placeholder-count="4">
+                          <div style="height:22px; position:relative; display:flex; align-items:center; justify-content:center;">
+                            <div style="position:absolute; left:0; right:0; top:50%; height:1px; background:var(--line);"></div>
+                            <sc-if value="{{ c.on }}">
+                              <span style="position:relative; z-index:2; padding:0 3px; background:var(--surface); white-space:nowrap; font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600; color:var(--ink);">{{ c.n }}</span>
+                            </sc-if>
+                            <sc-if value="{{ c.active }}">
+                              <span style="position:relative; z-index:2; padding:1px 4px; border-radius:5px; background:var(--accent); white-space:nowrap; font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600; color:var(--accent-ink);">{{ c.n }}</span>
+                            </sc-if>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isCercle }}">
+      <div style="display:flex; flex-direction:column; gap:18px;">
+        <div style="display:flex; flex-wrap:wrap; align-items:center; gap:14px;">
+          <button onClick="{{ goMenu }}" style="cursor:pointer; border:var(--cardborder); background:var(--surface); color:var(--ink); border-radius:999px; padding:10px 18px; font-size:13px; font-weight:600; white-space:nowrap; flex-shrink:0;" style-hover="background:var(--surface2);">← Menu</button>
+          <h2 style="margin:0; font-family:var(--display); font-size:30px; font-weight:500; line-height:1;">Cercle des quintes</h2>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:18px; align-items:start;">
+
+          <div style="background:var(--surface); border:var(--cardborder); border-radius:var(--radius); padding:20px; display:flex; flex-direction:column; gap:14px;">
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--dim);">Majeurs · mineurs · diminué — la fenêtre en rouge est la tonalité · clic = écouter, double-clic = figer la tonalité</div>
+            <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; padding:4px; border:var(--cardborder); border-radius:999px; background:var(--bg); align-self:center;">
+              <sc-for list="{{ cSoundOpts }}" as="o" hint-placeholder-count="3">
+                <sc-if value="{{ o.sel }}" hint-placeholder-val="{{ true }}">
+                  <button onClick="{{ o.pick }}" style="cursor:pointer; border:none; background:var(--accent); color:var(--accent-ink); border-radius:999px; padding:7px 15px; font-size:12px; font-weight:600; white-space:nowrap;">{{ o.label }}</button>
+                </sc-if>
+                <sc-if value="{{ o.notSel }}">
+                  <button onClick="{{ o.pick }}" style="cursor:pointer; border:none; background:transparent; color:var(--dim); border-radius:999px; padding:7px 15px; font-size:12px; font-weight:600; white-space:nowrap;" style-hover="color:var(--ink);">{{ o.label }}</button>
+                </sc-if>
+              </sc-for>
+            </div>
+            <div style="position:relative; width:100%; max-width:520px; margin:0 auto; aspect-ratio:1;">
+              <svg viewBox="0 0 100 100" style="width:100%; height:100%; display:block;">
+                <sc-for list="{{ circleMaj }}" as="k" hint-placeholder-count="12">
+                  <sc-if value="{{ k.isTonic }}">
+                    <g onClick="{{ k.pick }}" onDoubleClick="{{ k.lock }}" style="cursor:pointer;"><path d="{{ k.d }}" style="fill:var(--accent); stroke:var(--bg); stroke-width:0.5;"></path></g>
+                  </sc-if>
+                  <sc-if value="{{ k.inKey }}">
+                    <g onClick="{{ k.pick }}" onDoubleClick="{{ k.lock }}" style="cursor:pointer;"><path d="{{ k.d }}" style="fill:color-mix(in oklch, var(--accent) 20%, transparent); stroke:var(--bg); stroke-width:0.5;"></path></g>
+                  </sc-if>
+                  <sc-if value="{{ k.plain }}">
+                    <g onClick="{{ k.pick }}" onDoubleClick="{{ k.lock }}" style="cursor:pointer;" style-hover="opacity:0.7;"><path d="{{ k.d }}" style="fill:var(--surface2); stroke:var(--bg); stroke-width:0.5;"></path></g>
+                  </sc-if>
+                </sc-for>
+                <sc-for list="{{ circleMin }}" as="k" hint-placeholder-count="12">
+                  <sc-if value="{{ k.isTonic }}">
+                    <g onClick="{{ k.pick }}" onDoubleClick="{{ k.lock }}" style="cursor:pointer;"><path d="{{ k.d }}" style="fill:var(--accent); stroke:var(--bg); stroke-width:0.5;"></path></g>
+                  </sc-if>
+                  <sc-if value="{{ k.inKey }}">
+                    <g onClick="{{ k.pick }}" onDoubleClick="{{ k.lock }}" style="cursor:pointer;"><path d="{{ k.d }}" style="fill:color-mix(in oklch, var(--accent) 20%, transparent); stroke:var(--bg); stroke-width:0.5;"></path></g>
+                  </sc-if>
+                  <sc-if value="{{ k.plain }}">
+                    <g onClick="{{ k.pick }}" onDoubleClick="{{ k.lock }}" style="cursor:pointer;" style-hover="opacity:0.7;"><path d="{{ k.d }}" style="fill:var(--surface); stroke:var(--bg); stroke-width:0.5;"></path></g>
+                  </sc-if>
+                </sc-for>
+                <sc-for list="{{ circleDim }}" as="k" hint-placeholder-count="12">
+                  <sc-if value="{{ k.isTonic }}">
+                    <g onClick="{{ k.pick }}" onDoubleClick="{{ k.lock }}" style="cursor:pointer;"><path d="{{ k.d }}" style="fill:var(--accent); stroke:var(--bg); stroke-width:0.5;"></path></g>
+                  </sc-if>
+                  <sc-if value="{{ k.inKey }}">
+                    <g onClick="{{ k.pick }}" onDoubleClick="{{ k.lock }}" style="cursor:pointer;"><path d="{{ k.d }}" style="fill:color-mix(in oklch, var(--accent) 20%, transparent); stroke:var(--bg); stroke-width:0.5;"></path></g>
+                  </sc-if>
+                  <sc-if value="{{ k.plain }}">
+                    <g onClick="{{ k.pick }}" onDoubleClick="{{ k.lock }}" style="cursor:pointer;" style-hover="opacity:0.7;"><path d="{{ k.d }}" style="fill:var(--bg); stroke:var(--line); stroke-width:0.5;"></path></g>
+                  </sc-if>
+                </sc-for>
+                <circle cx="50" cy="50" r="12" style="fill:var(--surface); stroke:var(--line); stroke-width:0.4;"></circle>
+              </svg>
+              <sc-for list="{{ circleMaj }}" as="k" hint-placeholder-count="12">
+                <sc-if value="{{ k.isTonic }}">
+                  <div style="position:absolute; left:{{ k.lx }}%; top:{{ k.ly }}%; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:1px; pointer-events:none; text-align:center;"><span style="font-family:'IBM Plex Mono',monospace; font-size:17px; font-weight:600; line-height:1; color:var(--accent-ink);">{{ k.label }}</span><span style="font-family:'IBM Plex Mono',monospace; font-size:8px; line-height:1; color:var(--accent-ink); opacity:0.85;">{{ k.sub }}</span></div>
+                </sc-if>
+                <sc-if value="{{ k.inKey }}">
+                  <div style="position:absolute; left:{{ k.lx }}%; top:{{ k.ly }}%; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:1px; pointer-events:none; text-align:center;"><span style="font-family:'IBM Plex Mono',monospace; font-size:17px; font-weight:600; line-height:1; color:var(--ink);">{{ k.label }}</span><span style="font-family:'IBM Plex Mono',monospace; font-size:8px; line-height:1; color:var(--dim); opacity:1;">{{ k.sub }}</span></div>
+                </sc-if>
+                <sc-if value="{{ k.plain }}">
+                  <div style="position:absolute; left:{{ k.lx }}%; top:{{ k.ly }}%; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:1px; pointer-events:none; text-align:center;"><span style="font-family:'IBM Plex Mono',monospace; font-size:17px; font-weight:600; line-height:1; color:var(--dim);">{{ k.label }}</span><span style="font-family:'IBM Plex Mono',monospace; font-size:8px; line-height:1; color:var(--dim); opacity:1;">{{ k.sub }}</span></div>
+                </sc-if>
+              </sc-for>
+              <sc-for list="{{ circleMin }}" as="k" hint-placeholder-count="12">
+                <sc-if value="{{ k.isTonic }}">
+                  <div style="position:absolute; left:{{ k.lx }}%; top:{{ k.ly }}%; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:1px; pointer-events:none; text-align:center;"><span style="font-family:'IBM Plex Mono',monospace; font-size:13.5px; font-weight:600; line-height:1; color:var(--accent-ink);">{{ k.label }}</span><span style="font-family:'IBM Plex Mono',monospace; font-size:7.5px; line-height:1; color:var(--accent-ink); opacity:0.85;">{{ k.sub }}</span></div>
+                </sc-if>
+                <sc-if value="{{ k.inKey }}">
+                  <div style="position:absolute; left:{{ k.lx }}%; top:{{ k.ly }}%; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:1px; pointer-events:none; text-align:center;"><span style="font-family:'IBM Plex Mono',monospace; font-size:13.5px; font-weight:600; line-height:1; color:var(--ink);">{{ k.label }}</span><span style="font-family:'IBM Plex Mono',monospace; font-size:7.5px; line-height:1; color:var(--dim); opacity:1;">{{ k.sub }}</span></div>
+                </sc-if>
+                <sc-if value="{{ k.plain }}">
+                  <div style="position:absolute; left:{{ k.lx }}%; top:{{ k.ly }}%; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:1px; pointer-events:none; text-align:center;"><span style="font-family:'IBM Plex Mono',monospace; font-size:13.5px; font-weight:600; line-height:1; color:var(--dim);">{{ k.label }}</span><span style="font-family:'IBM Plex Mono',monospace; font-size:7.5px; line-height:1; color:var(--dim); opacity:1;">{{ k.sub }}</span></div>
+                </sc-if>
+              </sc-for>
+              <sc-for list="{{ circleDim }}" as="k" hint-placeholder-count="12">
+                <sc-if value="{{ k.isTonic }}">
+                  <div style="position:absolute; left:{{ k.lx }}%; top:{{ k.ly }}%; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:1px; pointer-events:none; text-align:center;"><span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; font-weight:600; line-height:1; color:var(--accent-ink);">{{ k.label }}</span><span style="font-family:'IBM Plex Mono',monospace; font-size:6.5px; line-height:1; color:var(--accent-ink); opacity:0.85;">{{ k.sub }}</span></div>
+                </sc-if>
+                <sc-if value="{{ k.inKey }}">
+                  <div style="position:absolute; left:{{ k.lx }}%; top:{{ k.ly }}%; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:1px; pointer-events:none; text-align:center;"><span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; font-weight:600; line-height:1; color:var(--ink);">{{ k.label }}</span><span style="font-family:'IBM Plex Mono',monospace; font-size:6.5px; line-height:1; color:var(--dim); opacity:1;">{{ k.sub }}</span></div>
+                </sc-if>
+                <sc-if value="{{ k.plain }}">
+                  <div style="position:absolute; left:{{ k.lx }}%; top:{{ k.ly }}%; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:1px; pointer-events:none; text-align:center;"><span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; font-weight:600; line-height:1; color:var(--dim);">{{ k.label }}</span><span style="font-family:'IBM Plex Mono',monospace; font-size:6.5px; line-height:1; color:var(--dim); opacity:1;">{{ k.sub }}</span></div>
+                </sc-if>
+              </sc-for>
+              <div style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:23%; height:23%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; pointer-events:none;">
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:18px; font-weight:600; line-height:1;">{{ cTonic }}</span>
+                <span style="font-size:8.5px; color:var(--dim); text-align:center; line-height:1.15;">{{ cSigShort }}</span>
+              </div>
+            </div>
+            <sc-if value="{{ cLocked }}">
+              <button onClick="{{ cToggleLock }}" style="cursor:pointer; align-self:center; border:1px solid var(--accent); background:color-mix(in oklch, var(--accent) 16%, transparent); color:var(--ink); border-radius:999px; padding:8px 16px; font-size:12px; font-weight:600; white-space:nowrap;">◉ Tonalité figée sur {{ cTonic }} — déverrouiller</button>
+            </sc-if>
+            <sc-if value="{{ cUnlocked }}">
+              <button onClick="{{ cToggleLock }}" style="cursor:pointer; align-self:center; border:var(--cardborder); background:transparent; color:var(--dim); border-radius:999px; padding:8px 16px; font-size:12px; font-weight:600; white-space:nowrap;" style-hover="color:var(--ink);">○ Figer la tonalité sur {{ cTonic }}</button>
+            </sc-if>
+            <button onClick="{{ openInScales }}" style="cursor:pointer; align-self:center; border:none; background:var(--accent); color:var(--accent-ink); border-radius:999px; padding:12px 22px; font-size:13px; font-weight:600; white-space:nowrap; flex-shrink:0;">Travailler {{ cTonic }} dans Gammes →</button>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:14px;">
+            <sc-for list="{{ cPanels }}" as="p" hint-placeholder-count="4">
+              <div style="background:var(--surface); border:var(--cardborder); border-radius:var(--radius); padding:18px; display:flex; flex-direction:column; gap:12px;">
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--dim);">{{ p.title }}</div>
+                <sc-if value="{{ p.hasBig }}">
+                  <div style="font-family:'IBM Plex Mono',monospace; font-size:17px; line-height:1.6; letter-spacing:0.04em;">{{ p.big }}</div>
+                </sc-if>
+                <sc-if value="{{ p.hasSwitch }}">
+                  <div style="display:flex; flex-wrap:wrap; gap:6px; padding:4px; border:var(--cardborder); border-radius:999px; background:var(--bg); align-self:flex-start;">
+                    <sc-for list="{{ p.opts }}" as="o" hint-placeholder-count="2">
+                      <sc-if value="{{ o.sel }}" hint-placeholder-val="{{ true }}">
+                        <button onClick="{{ o.pick }}" style="cursor:pointer; border:none; background:var(--accent); color:var(--accent-ink); border-radius:999px; padding:6px 13px; font-size:11.5px; font-weight:600; white-space:nowrap;">{{ o.label }}</button>
+                      </sc-if>
+                      <sc-if value="{{ o.notSel }}">
+                        <button onClick="{{ o.pick }}" style="cursor:pointer; border:none; background:transparent; color:var(--dim); border-radius:999px; padding:6px 13px; font-size:11.5px; font-weight:600; white-space:nowrap;" style-hover="color:var(--ink);">{{ o.label }}</button>
+                      </sc-if>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ p.hasTable }}">
+                  <div style="display:flex; flex-direction:column;">
+                    <div style="display:grid; grid-template-columns:34px 1fr 1.25fr 1.25fr; gap:12px; padding:0 0 6px; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--dim);">
+                      <span style="text-align:center;">N°</span>
+                      <span>Accord</span>
+                      <span style="text-align:center;">Notes</span>
+                      <span style="text-align:center;">Degrés</span>
+                    </div>
+                    <sc-for list="{{ p.rows }}" as="r" hint-placeholder-count="7">
+                      <div style="display:grid; grid-template-columns:34px 1fr 1.25fr 1.25fr; gap:12px; align-items:baseline; padding:6px 0; border-top:1px solid var(--line); font-family:'IBM Plex Mono',monospace;">
+                        <span style="font-size:12px; color:var(--dim); text-align:center;">{{ r.rn }}</span>
+                        <span style="font-size:13.5px;">{{ r.acc }}</span>
+                        <span style="font-size:12.5px; letter-spacing:0.05em; text-align:center;">{{ r.notes }}</span>
+                        <span style="font-size:12.5px; letter-spacing:0.05em; color:var(--dim); text-align:center;">{{ r.degs }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <sc-for list="{{ p.lines }}" as="l" hint-placeholder-count="3">
+                  <div style="display:flex; align-items:baseline; justify-content:space-between; gap:14px; font-size:14px; padding:3px 0; border-top:1px solid var(--line);">
+                    <span style="color:var(--dim);">{{ l.l }}</span>
+                    <span style="font-family:'IBM Plex Mono',monospace; text-align:right;">{{ l.v }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isHome }}">
+      <div style="display:flex; flex-direction:column; gap:20px;">
+        <div style="display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:16px;">
+          <button onClick="{{ goMenu }}" style="cursor:pointer; border:var(--cardborder); background:var(--surface); color:var(--ink); border-radius:999px; padding:10px 18px; font-size:13px; font-weight:600; white-space:nowrap; flex-shrink:0;" style-hover="background:var(--surface2);">← Menu</button>
+        </div>
+        <div style="display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:16px;">
+          <p style="margin:0; max-width:56ch; color:var(--dim); font-size:15px; line-height:1.55; text-wrap:pretty;">Chaque motif couvre une octave à partir de la fondamentale. Les pastilles indiquent les degrés — le doigté reste le même dans les 12 tonalités. {{ ghostNote }} Touchez une gamme pour l'ouvrir dans une tonalité.</p>
+          <div style="display:flex; gap:6px; padding:4px; border:var(--cardborder); border-radius:999px; background:var(--surface);">
+            <sc-for list="{{ roots }}" as="r" hint-placeholder-count="2">
+              <sc-if value="{{ r.sel }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ r.pick }}" style="border:none; cursor:pointer; padding:10px 16px; border-radius:999px; background:var(--accent); color:var(--accent-ink); font-size:12px; font-weight:600;">{{ r.label }}</button>
+              </sc-if>
+              <sc-if value="{{ r.unsel }}">
+                <button onClick="{{ r.pick }}" style="border:none; cursor:pointer; padding:10px 16px; border-radius:999px; background:transparent; color:var(--dim); font-size:12px; font-weight:600;" style-hover="color:var(--ink);">{{ r.label }}</button>
+              </sc-if>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:16px;">
+          <sc-for list="{{ cards }}" as="card" hint-placeholder-count="8">
+            <button onClick="{{ card.open }}" style="cursor:pointer; text-align:left; display:flex; flex-direction:column; gap:14px; padding:18px 18px 16px; background:var(--surface); border:var(--cardborder); border-radius:var(--radius); color:var(--ink); transition:transform .15s ease, background .15s ease;" style-hover="background:var(--surface2); transform:translateY(-2px);">
+              <div style="display:flex; align-items:baseline; justify-content:space-between; gap:12px;">
+                <span style="font-family:var(--display); font-size:22px; font-weight:500; line-height:1.1;">{{ card.name }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--dim); letter-spacing:0.06em;">{{ card.count }}</span>
+              </div>
+              <div style="display:flex; align-items:stretch;">
+                <div style="width:22px; display:flex; flex-direction:column;">
+                  <sc-for list="{{ card.rows }}" as="row" hint-placeholder-count="4">
+                    <div style="height:42px; display:flex; align-items:center; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--dim);">{{ row.name }}</div>
+                  </sc-for>
+                </div>
+                <div style="flex:1; border-left:2px solid var(--line);">
+                  <sc-for list="{{ card.rows }}" as="row" hint-placeholder-count="4">
+                    <div style="display:flex; height:42px;">
+                      <sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="5">
+                        <div style="flex:1; position:relative; display:flex; align-items:center; justify-content:center; border-right:1px solid var(--line);">
+                          <div style="position:absolute; left:0; right:0; top:50%; height:1px; background:var(--line);"></div>
+                          <sc-if value="{{ cell.isNote }}">
+                            <div style="position:relative; width:32px; height:32px; border-radius:50%; background:var(--dot); color:var(--dot-ink); display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600;">{{ cell.label }}</div>
+                          </sc-if>
+                          <sc-if value="{{ cell.isRoot }}">
+                            <div style="position:relative; width:32px; height:32px; border-radius:50%; background:var(--accent); color:var(--accent-ink); display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600;">{{ cell.label }}</div>
+                          </sc-if>
+                          <sc-if value="{{ cell.isGhost }}">
+                            <div style="position:relative; width:32px; height:32px; border-radius:50%; background:color-mix(in oklch, var(--dot) 20%, transparent); border:1px solid color-mix(in oklch, var(--dot) 35%, transparent); box-sizing:border-box; color:var(--dim); display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600;">{{ cell.label }}</div>
+                          </sc-if>
+                          <sc-if value="{{ cell.isGhostRoot }}">
+                            <div style="position:relative; width:32px; height:32px; border-radius:50%; background:color-mix(in oklch, var(--accent) 22%, transparent); border:1px solid color-mix(in oklch, var(--accent) 55%, transparent); box-sizing:border-box; color:var(--accent); display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600;">{{ cell.label }}</div>
+                          </sc-if>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:6px 10px; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--dim);">{{ card.degrees }}</div>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isScale }}">
+      <div style="display:flex; flex-direction:column; gap:20px;">
+
+        <div style="display:flex; flex-wrap:wrap; align-items:center; gap:14px;">
+          <button onClick="{{ goHome }}" style="cursor:pointer; border:var(--cardborder); background:var(--surface); color:var(--ink); border-radius:999px; padding:10px 18px; font-size:13px; font-weight:600; white-space:nowrap; flex-shrink:0;" style-hover="background:var(--surface2);">← Toutes les gammes</button>
+          <h2 style="margin:0; font-family:var(--display); font-size:30px; font-weight:500; line-height:1;">{{ title }}</h2>
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--dim); letter-spacing:0.08em;">{{ parentLabel }}</span>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--dim);">Tonalité</div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(72px, 1fr)); gap:8px;">
+            <sc-for list="{{ keys }}" as="k" hint-placeholder-count="12">
+              <sc-if value="{{ k.sel }}">
+                <button onClick="{{ k.pick }}" style="cursor:pointer; padding:14px 4px; border-radius:12px; border:1px solid var(--accent); background:var(--accent); color:var(--accent-ink); font-family:'IBM Plex Mono',monospace; font-size:17px; font-weight:600;">{{ k.name }}</button>
+              </sc-if>
+              <sc-if value="{{ k.unsel }}">
+                <button onClick="{{ k.pick }}" style="cursor:pointer; padding:14px 4px; border-radius:12px; border:var(--cardborder); background:var(--surface); color:var(--ink); font-family:'IBM Plex Mono',monospace; font-size:17px; font-weight:600;" style-hover="background:var(--surface2);">{{ k.name }}</button>
+              </sc-if>
+            </sc-for>
+          </div>
+        </div>
+
+        <sc-if value="{{ hasModes }}">
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--dim);">Mode</div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:8px;">
+              <sc-for list="{{ modes }}" as="m" hint-placeholder-count="7">
+                <sc-if value="{{ m.sel }}">
+                  <button onClick="{{ m.pick }}" style="cursor:pointer; text-align:left; padding:12px 14px; border-radius:12px; border:1px solid var(--accent); background:var(--accent); color:var(--accent-ink); display:flex; flex-direction:column; gap:3px;">
+                    <span style="font-family:'IBM Plex Mono',monospace; font-size:16px; font-weight:600;">{{ m.tonic }}</span>
+                    <span style="font-size:12px; font-weight:500; opacity:0.85;">{{ m.name }}</span>
+                  </button>
+                </sc-if>
+                <sc-if value="{{ m.unsel }}">
+                  <button onClick="{{ m.pick }}" style="cursor:pointer; text-align:left; padding:12px 14px; border-radius:12px; border:var(--cardborder); background:var(--surface); color:var(--ink); display:flex; flex-direction:column; gap:3px;" style-hover="background:var(--surface2);">
+                    <span style="font-family:'IBM Plex Mono',monospace; font-size:16px; font-weight:600;">{{ m.tonic }}</span>
+                    <span style="font-size:12px; font-weight:500; color:var(--dim);">{{ m.name }}</span>
+                  </button>
+                </sc-if>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <div style="background:var(--surface); border:var(--cardborder); border-radius:var(--radius); padding:22px 20px; display:flex; flex-direction:column; gap:18px;">
+          <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px;">
+            <div style="display:flex; flex-wrap:wrap; align-items:center; gap:12px;">
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--dim); letter-spacing:0.08em;">{{ positionLabel }}</div>
+              <div style="display:flex; gap:4px; padding:3px; border:var(--cardborder); border-radius:999px; background:var(--surface2);">
+                <sc-for list="{{ roots }}" as="r" hint-placeholder-count="2">
+                  <sc-if value="{{ r.sel }}" hint-placeholder-val="{{ true }}">
+                    <button onClick="{{ r.pick }}" style="border:none; cursor:pointer; padding:8px 14px; border-radius:999px; background:var(--accent); color:var(--accent-ink); font-size:12px; font-weight:600;">{{ r.label }}</button>
+                  </sc-if>
+                  <sc-if value="{{ r.unsel }}">
+                    <button onClick="{{ r.pick }}" style="border:none; cursor:pointer; padding:8px 14px; border-radius:999px; background:transparent; color:var(--dim); font-size:12px; font-weight:600;" style-hover="color:var(--ink);">{{ r.label }}</button>
+                  </sc-if>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+              <button onClick="{{ toggleLabels }}" style="cursor:pointer; border:var(--cardborder); background:var(--surface2); color:var(--ink); border-radius:999px; padding:10px 16px; font-size:13px; font-weight:600; white-space:nowrap; flex-shrink:0;" style-hover="border-color:var(--accent);">{{ labelBtn }}</button>
+              <button onClick="{{ play }}" style="cursor:pointer; border:none; background:var(--accent); color:var(--accent-ink); border-radius:999px; padding:10px 18px; font-size:13px; font-weight:600; white-space:nowrap; flex-shrink:0;">▶ Écouter la gamme</button>
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:stretch;">
+            <div style="width:26px; display:flex; flex-direction:column;">
+              <sc-for list="{{ rows }}" as="row" hint-placeholder-count="4">
+                <div style="height:56px; display:flex; align-items:center; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--dim);">{{ row.name }}</div>
+              </sc-for>
+            </div>
+            <div style="flex:1; border-left:3px solid var(--line);">
+              <sc-for list="{{ rows }}" as="row" hint-placeholder-count="4">
+                <div style="display:flex; height:56px;">
+                  <sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="5">
+                    <div style="flex:1; position:relative; display:flex; align-items:center; justify-content:center; border-right:1px solid var(--line);">
+                      <div style="position:absolute; left:0; right:0; top:50%; height:1px; background:var(--line);"></div>
+                      <sc-if value="{{ cell.isNote }}">
+                        <div style="position:relative; width:44px; height:44px; border-radius:50%; background:var(--dot); color:var(--dot-ink); display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:15px; font-weight:600;">{{ cell.label }}</div>
+                      </sc-if>
+                      <sc-if value="{{ cell.isRoot }}">
+                        <div style="position:relative; width:44px; height:44px; border-radius:50%; background:var(--accent); color:var(--accent-ink); display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:15px; font-weight:600;">{{ cell.label }}</div>
+                      </sc-if>
+                      <sc-if value="{{ cell.isGhost }}">
+                        <div style="position:relative; width:44px; height:44px; border-radius:50%; background:color-mix(in oklch, var(--dot) 20%, transparent); border:1px solid color-mix(in oklch, var(--dot) 35%, transparent); box-sizing:border-box; color:var(--dim); display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:15px; font-weight:600;">{{ cell.label }}</div>
+                      </sc-if>
+                      <sc-if value="{{ cell.isGhostRoot }}">
+                        <div style="position:relative; width:44px; height:44px; border-radius:50%; background:color-mix(in oklch, var(--accent) 22%, transparent); border:1px solid color-mix(in oklch, var(--accent) 55%, transparent); box-sizing:border-box; color:var(--accent); display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:15px; font-weight:600;">{{ cell.label }}</div>
+                      </sc-if>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-for>
+              <div style="display:flex; padding-top:8px;">
+                <sc-for list="{{ frets }}" as="f" hint-placeholder-count="5">
+                  <div style="flex:1; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--dim);">{{ f.n }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:var(--surface); border:var(--cardborder); border-radius:var(--radius); padding:20px 16px; display:flex; flex-direction:column; gap:12px;">
+          <div style="display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:10px;">
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--dim);">Manche complet · sillet à frette 19</div>
+            <div style="font-size:12px; color:var(--dim);">{{ neckHint }}</div>
+          </div>
+          <div style="display:flex;">
+            <div style="width:22px; display:flex; flex-direction:column;">
+              <sc-for list="{{ neckRows }}" as="row" hint-placeholder-count="4">
+                <div style="height:44px; display:flex; align-items:center; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--dim);">{{ row.name }}</div>
+              </sc-for>
+            </div>
+            <div style="width:44px; display:flex; flex-direction:column; border-right:5px solid var(--ink);">
+              <sc-for list="{{ neckRows }}" as="row" hint-placeholder-count="4">
+                <div style="height:44px; position:relative; display:flex; align-items:center; justify-content:center;">
+                  <sc-if value="{{ row.open.inPos }}">
+                    <div style="position:absolute; left:0; right:0; top:0; bottom:0; background:color-mix(in oklch, var(--accent) 12%, transparent);"></div>
+                  </sc-if>
+                  <div style="position:absolute; left:0; right:0; top:50%; height:1px; background:var(--line);"></div>
+                  <sc-if value="{{ row.open.isNote }}">
+                    <div style="position:relative; width:32px; height:32px; border-radius:50%; background:var(--dot); color:var(--dot-ink); display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600;">{{ row.open.label }}</div>
+                  </sc-if>
+                  <sc-if value="{{ row.open.isRoot }}">
+                    <div style="position:relative; width:32px; height:32px; border-radius:50%; background:var(--accent); color:var(--accent-ink); display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600;">{{ row.open.label }}</div>
+                  </sc-if>
+                </div>
+              </sc-for>
+              <div style="height:23px;"></div>
+            </div>
+            <div style="flex:1;">
+              <sc-for list="{{ neckRows }}" as="row" hint-placeholder-count="4">
+                <div style="display:flex; height:44px;">
+                  <sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="20">
+                    <div style="flex:1; position:relative; display:flex; align-items:center; justify-content:center; border-right:1px solid var(--line);">
+                      <sc-if value="{{ cell.inPos }}">
+                        <div style="position:absolute; left:0; right:0; top:0; bottom:0; background:color-mix(in oklch, var(--accent) 12%, transparent);"></div>
+                      </sc-if>
+                      <div style="position:absolute; left:0; right:0; top:50%; height:1px; background:var(--line);"></div>
+                      <sc-if value="{{ cell.isNote }}">
+                        <div style="position:relative; width:32px; height:32px; border-radius:50%; background:var(--dot); color:var(--dot-ink); display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600;">{{ cell.label }}</div>
+                      </sc-if>
+                      <sc-if value="{{ cell.isRoot }}">
+                        <div style="position:relative; width:32px; height:32px; border-radius:50%; background:var(--accent); color:var(--accent-ink); display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600;">{{ cell.label }}</div>
+                      </sc-if>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-for>
+              <div style="display:flex; padding-top:6px;">
+                <sc-for list="{{ neckFrets }}" as="f" hint-placeholder-count="20">
+                  <div style="flex:1; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--dim);">{{ f.n }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px;">
+          <sc-for list="{{ panels }}" as="p" hint-placeholder-count="4">
+            <div style="background:var(--surface); border:var(--cardborder); border-radius:var(--radius); padding:18px; display:flex; flex-direction:column; gap:12px;">
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--dim);">{{ p.title }}</div>
+              <sc-if value="{{ p.hasBig }}">
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:17px; line-height:1.6; letter-spacing:0.04em;">{{ p.big }}</div>
+              </sc-if>
+              <sc-for list="{{ p.lines }}" as="l" hint-placeholder-count="3">
+                <div style="display:flex; justify-content:space-between; gap:14px; font-size:14px; padding:3px 0; border-top:1px solid var(--line);">
+                  <span style="color:var(--dim);">{{ l.l }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace; text-align:right;">{{ l.v }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+
+      </div>
+    </sc-if>
+
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;direction&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;nuit&quot;,&quot;carnet&quot;],&quot;default&quot;:&quot;nuit&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Direction visuelle&quot;},&quot;degreeStyle&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;sym&quot;,&quot;num&quot;],&quot;default&quot;:&quot;sym&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Notation&quot;}}">
+const KEYS = [
+  {pc:0,maj:'C',min:'C'},{pc:1,maj:'D\u266d',min:'C\u266f'},{pc:2,maj:'D',min:'D'},{pc:3,maj:'E\u266d',min:'E\u266d'},
+  {pc:4,maj:'E',min:'E'},{pc:5,maj:'F',min:'F'},{pc:6,maj:'F\u266f',min:'F\u266f'},{pc:7,maj:'G',min:'G'},
+  {pc:8,maj:'A\u266d',min:'G\u266f'},{pc:9,maj:'A',min:'A'},{pc:10,maj:'B\u266d',min:'B\u266d'},{pc:11,maj:'B',min:'B'}
+];
+const LETTERS = ['C','D','E','F','G','A','B'];
+const NAT = {C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+const MAJREF = [0,2,4,5,7,9,11];
+const MINOR_FAM = {min:1, pmin:1, bmin:1, harm:1, mel:1};
+const SHARP = '\u266f', FLAT = '\u266d', TRI = '\u1403';
+
+function spell(tonic, deg, pc){
+  const L = LETTERS[(LETTERS.indexOf(tonic.charAt(0)) + deg - 1) % 7];
+  let d = (((pc - NAT[L]) % 12) + 12) % 12;
+  if (d > 6) d -= 12;
+  return L + (d > 0 ? (SHARP + SHARP).slice(0, d) : d < 0 ? (FLAT + FLAT).slice(0, -d) : '');
+}
+function degLabel(deg, semi, num){
+  let d = (((semi % 12) + 12) % 12) - MAJREF[deg - 1];
+  if (d > 6) d -= 12; if (d < -6) d += 12;
+  if (deg === 1 && d === 0) return num ? '1' : 'R';
+  const acc = d === 0 ? (num ? '' : (deg === 4 || deg === 5 ? 'p' : TRI))
+    : d > 0 ? (SHARP + SHARP).slice(0, d) : (FLAT + FLAT).slice(0, -d);
+  return acc + deg;
+}
+
+const SCALES = [
+  {id:'maj', nom:'Majeure', semis:[0,2,4,5,7,9,11,12], degs:[1,2,3,4,5,6,7,1]},
+  {id:'min', nom:'Mineure naturelle', semis:[0,2,3,5,7,8,10,12], degs:[1,2,3,4,5,6,7,1]},
+  {id:'pmaj', nom:'Pentatonique majeure', semis:[0,2,4,7,9,12], degs:[1,2,3,5,6,1]},
+  {id:'pmin', nom:'Pentatonique mineure', semis:[0,3,5,7,10,12], degs:[1,3,4,5,7,1]},
+  {id:'bmin', nom:'Blues mineure', semis:[0,3,5,6,7,10,12], degs:[1,3,4,5,5,7,1]},
+  {id:'bmaj', nom:'Blues majeure', semis:[0,2,3,4,7,9,12], degs:[1,2,3,3,5,6,1]},
+  {id:'harm', nom:'Mineure harmonique', semis:[0,2,3,5,7,8,11,12], degs:[1,2,3,4,5,6,7,1]},
+  {id:'mel', nom:'Mineure m\u00e9lodique', semis:[0,2,3,5,7,9,11,12], degs:[1,2,3,4,5,6,7,1]}
+];
+const MODE_NAMES = {
+  maj: ['Ionien','Dorien','Phrygien','Lydien','Mixolydien','\u00c9olien','Locrien'],
+  min: ['\u00c9olien','Locrien','Ionien','Dorien','Phrygien','Lydien','Mixolydien'],
+  harm: ['Mineure harmonique','Locrien \u266e6','Ionien ' + SHARP + '5','Dorien ' + SHARP + '4','Phrygien dominant','Lydien ' + SHARP + '2','Alt\u00e9r\u00e9e dim.'],
+  mel: ['Mineure m\u00e9lodique','Dorien ' + FLAT + '2','Lydien augment\u00e9','Lydien dominant','Mixolydien ' + FLAT + '6','Locrien \u266e2','Alt\u00e9r\u00e9e (super-locrien)'],
+  pmaj: ['Majeure','\u00c9gyptienne / sus','Man gong','Ritusen','Mineure'],
+  pmin: ['Mineure','Majeure','\u00c9gyptienne / sus','Man gong','Ritusen']
+};
+const OPEN_MIDI = [43,38,33,28];
+const STR_NAMES = ['G','D','A','E'];
+const QUAL = {'4-7-11':'maj7','4-7-10':'7','3-7-10':'m7','3-6-10':'m7' + FLAT + '5','3-6-9':'dim7','4-8-11':'maj7' + SHARP + '5','3-7-11':'m(maj7)','4-8-10':'7' + SHARP + '5','3-7-9':'m6'};
+const QUAL3 = {'4-7':'','3-7':'m','3-6':'\u00b0','4-8':'+','3-8':'m(\u266f5)','2-7':'sus2','5-7':'sus4'};
+const ROMAN = ['I','II','III','IV','V','VI','VII'];
+const MOTIF_STEP = {b3:2, b4:3, b5:4, b6:5, b7:6};
+const MOTIFS = [
+  {id:'lin', nom:'Linéaire', sub:'1 2 3 4 5…'},
+  {id:'b3', nom:'Tierces brisées', sub:'1 3 · 2 4 · 3 5…'},
+  {id:'b4', nom:'Quartes brisées', sub:'1 4 · 2 5 · 3 6…'},
+  {id:'b5', nom:'Quintes brisées', sub:'1 5 · 2 6 · 3 7…'},
+  {id:'b6', nom:'Sixtes brisées', sub:'1 6 · 2 7 · 3 8…'},
+  {id:'b7', nom:'Septièmes brisées', sub:'1 7 · 2 8 · 3 9…'},
+  {id:'triad', nom:'Triades', sub:'1 3 5 3 1 · 2 4 6 4 2…'}
+];
+
+class Component extends DCLogic {
+  state = { view:'menu', scaleId:'maj', keyPc:0, mode:0, theme:null, labels:'note' };
+
+  pattern(sc, rs, extraUp, extraLow, minOff, maxOff){
+    rs = rs == null ? 2 : rs;
+    const raw = sc.semis.map((v, i) => ({v, d: sc.degs[i], base: true}));
+    const n = sc.semis.length - 1;
+    for (let j = 1; j <= (extraUp || 0) && j <= n; j++) raw.push({v: 12 + sc.semis[j], d: sc.degs[j]});
+    for (let j = 1; j <= (extraLow || 0) && j <= n; j++) raw.push({v: sc.semis[n - j] - 12, d: sc.degs[n - j]});
+    const notes = [];
+    raw.forEach(x => {
+      let str = x.v < -1 ? rs + 1 : x.v <= 3 ? rs : x.v <= 8 ? rs - 1 : x.v <= 12 ? rs - 2 : rs - 3;
+      if (str < 0) str = rs - 2;
+      if (str > 3) str = rs;
+      const off = x.v - (rs - str) * 5;
+      if (!x.base && minOff != null && off < minOff) return;
+      if (!x.base && maxOff != null && off > maxOff) return;
+      notes.push({str, off, v: x.v, d: x.d});
+    });
+    const offs = notes.map(n => n.off);
+    const nmin = Math.min.apply(null, offs), nmax = Math.max.apply(null, offs);
+    let start = nmin - 1, end = nmax;
+    while (end - start + 1 < 5) end++;
+    return {notes, start, end, nmin, nmax};
+  }
+
+  info(sc){
+    const m = {};
+    sc.semis.forEach((v, i) => { const p = v % 12; if (m[p] === undefined) m[p] = {v, d: sc.degs[i]}; });
+    return m;
+  }
+
+  rows(sc, opt){
+    const rs = opt.rs == null ? 2 : opt.rs;
+    const gs = rs === 2 ? 3 : 0;
+    const inf = this.info(sc);
+    const lo = opt.rootFret != null ? -opt.rootFret : null;
+    const hi = opt.rootFret != null ? 19 - opt.rootFret : null;
+    const p = this.pattern(sc, rs, opt.extra, opt.extra, lo, hi), out = [];
+    for (let s = 0; s < 4; s++) {
+      const cells = [];
+      for (let o = p.start; o <= p.end; o++) {
+        if (opt.full) {
+          const iv = ((((OPEN_MIDI[s] + o) - OPEN_MIDI[rs]) % 12) + 12) % 12;
+          const g = inf[iv];
+          const root = !!g && iv === 0;
+          cells.push({
+            label: g ? (opt.mode === 'note' ? spell(opt.tonic, g.d, opt.pc + g.v) : degLabel(g.d, g.v, opt.num)) : '',
+            isNote: !!g && !root, isRoot: root, isGhost: false, isGhostRoot: false
+          });
+          continue;
+        }
+        const n = p.notes.filter(x => x.str === s && x.off === o)[0];
+        let label = '', isNote = false, isRoot = false, isGhost = false, isGhostRoot = false;
+        if (n) {
+          isRoot = (n.v % 12 === 0); isNote = !isRoot;
+          label = opt.mode === 'note' ? spell(opt.tonic, n.d, opt.pc + n.v) : degLabel(n.d, n.v, opt.num);
+        } else if (s === gs) {
+          const semi = (((o + (rs - s) * 5) % 12) + 12) % 12;
+          const g = inf[semi];
+          if (g) {
+            isGhostRoot = semi === 0; isGhost = !isGhostRoot;
+            label = opt.mode === 'note' ? spell(opt.tonic, g.d, opt.pc + g.v) : degLabel(g.d, g.v, opt.num);
+          }
+        }
+        cells.push({label, isNote, isRoot, isGhost, isGhostRoot});
+      }
+      out.push({name: STR_NAMES[s], cells});
+    }
+    const frets = [];
+    for (let o = p.start; o <= p.end; o++) frets.push({n: opt.rootFret != null ? String(opt.rootFret + o) : ''});
+    return {rows: out, frets, p};
+  }
+
+  rootFret(sc, pc, rs, extra){
+    rs = rs == null ? 2 : rs;
+    const openPc = rs === 2 ? 9 : 4;
+    let f = (((pc - openPc) % 12) + 12) % 12;
+    if (f === 0) f = 12;
+    const p = this.pattern(sc, rs, extra, 0);
+    if (f + p.start < 1) f += 12;
+    return f;
+  }
+
+  formula(sc){
+    const t = [];
+    for (let i = 1; i < sc.semis.length; i++) {
+      const d = sc.semis[i] - sc.semis[i-1];
+      t.push(d === 1 ? '\u00bd' : d === 2 ? '1' : d === 3 ? '1\u00bd' : String(d / 2));
+    }
+    return t.join('  \u2013  ');
+  }
+
+  chords(sc, pc, tonic, num, sev){
+    if (sc.semis.length !== 8) return null;
+    const s = sc.semis.slice(0, 7), s7 = s.concat(s.map(x => x + 12));
+    const offs = sev === false ? [0, 2, 4] : [0, 2, 4, 6];
+    const out = [];
+    for (let i = 0; i < 7; i++) {
+      const r = s7[i];
+      const iv = offs.slice(1).map(o => s7[i + o] - r).join('-');
+      const q = (sev === false ? QUAL3[iv] : QUAL[iv]) || '';
+      const notes = offs.map(o => spell(tonic, ((i + o) % 7) + 1, pc + s7[i + o])).join('  ');
+      const up = t => t === 'R' ? '8' : t.replace(/\d+$/, m => String(+m + 7));
+      const degs = offs.map(o => {
+        const t = degLabel(((i + o) % 7) + 1, s7[i + o], num);
+        return s7[i + o] >= 12 ? up(t) : t;
+      }).join('  ');
+      out.push({rn: ROMAN[i], acc: spell(tonic, i + 1, pc + r) + q, notes, degs,
+        l: ROMAN[i], v: spell(tonic, i + 1, pc + r) + q});
+    }
+    return out;
+  }
+
+  usableChords(sc, tonic, mi){
+    const T = tonic;
+    if (mi > 0) {
+      const has = {}; sc.semis.forEach(v => { has[v % 12] = 1; });
+      const suffix = has[4] ? (has[10] ? '7' : has[11] ? 'maj7' : '6/9')
+        : has[3] ? (has[10] ? 'm7' : 'm') : 'sus4';
+      const couleur = has[4] ? 'majeure' : has[3] ? 'mineure' : 'suspendue';
+      return [{l:'Couleur', v: couleur}, {l:'Sur', v: T + suffix}, {l:'Aussi', v: T + (has[7] ? '5' : 'sus4')}];
+    }
+    switch (sc.id) {
+      case 'pmaj': return [{l:'Sur', v:T + 'maj7'}, {l:'Sur', v:T + '6/9'}, {l:'Sur', v:T + 'add9'}];
+      case 'pmin': return [{l:'Sur', v:T + 'm7'}, {l:'Sur', v:T + 'm'}, {l:'Blues', v:T + '7'}];
+      case 'bmin': return [{l:'Sur', v:T + '7'}, {l:'Sur', v:T + 'm7'}, {l:'Blues en', v:T}];
+      case 'bmaj': return [{l:'Sur', v:T + '7'}, {l:'Sur', v:T + '6'}, {l:'Sur', v:T + '9'}];
+      default: return [];
+    }
+  }
+
+  relatives(sc, pc, tonic, parent, parentTonic, mi){
+    const K = (v, minor) => { const k = KEYS.filter(x => x.pc === (((pc + v) % 12) + 12) % 12)[0]; return minor ? k.min : k.maj; };
+    const T = tonic;
+    if (mi > 0) return [
+      {l:'Gamme m\u00e8re', v: parentTonic + ' ' + parent.nom.toLowerCase()},
+      {l:'Degr\u00e9', v: ROMAN[mi] + ' de ' + parentTonic},
+      {l:'M\u00eames notes que', v: parentTonic + ' ' + parent.nom.toLowerCase()}
+    ];
+    switch (sc.id) {
+      case 'maj': return [{l:'Relative mineure', v:K(9,true) + ' min. nat.'}, {l:'Penta extraite', v:T + ' penta maj.'}, {l:'Parall\u00e8le', v:K(0,true) + ' min. nat.'}];
+      case 'min': return [{l:'Relative majeure', v:K(3,false) + ' majeure'}, {l:'Penta extraite', v:T + ' penta min.'}, {l:'Variantes', v:T + ' harm. / m\u00e9lo.'}];
+      case 'pmaj': return [{l:'Relative mineure', v:K(9,true) + ' penta min.'}, {l:'Gamme m\u00e8re', v:T + ' majeure'}, {l:'+ ' + FLAT + '3', v:T + ' blues maj.'}];
+      case 'pmin': return [{l:'Relative majeure', v:K(3,false) + ' penta maj.'}, {l:'Gamme m\u00e8re', v:T + ' min. nat.'}, {l:'+ ' + FLAT + '5', v:T + ' blues min.'}];
+      case 'bmin': return [{l:'Relative majeure', v:K(3,false) + ' blues maj.'}, {l:'Base', v:T + ' penta min. + ' + FLAT + '5'}, {l:'Gamme m\u00e8re', v:T + ' min. nat.'}];
+      case 'bmaj': return [{l:'Relative mineure', v:K(9,true) + ' blues min.'}, {l:'Base', v:T + ' penta maj. + ' + FLAT + '3'}, {l:'Gamme m\u00e8re', v:T + ' majeure'}];
+      case 'harm': return [{l:'Base', v:T + ' min. nat. \u2192 ' + TRI + '7'}, {l:'Accord cl\u00e9', v:'V7 = ' + spell(T, 5, pc + 7) + '7'}, {l:'Couleur', v:FLAT + '6 \u2192 ' + TRI + '7 (seconde augment\u00e9e)'}];
+      case 'mel': return [{l:'Base', v:T + ' min. nat. \u2192 ' + TRI + '6 ' + TRI + '7'}, {l:'Aussi appel\u00e9e', v:'mineure jazz'}, {l:'Accord cl\u00e9', v:T + 'm(maj7)'}];
+      default: return [];
+    }
+  }
+
+  ctx(){
+    const parent = SCALES.filter(x => x.id === this.state.scaleId)[0];
+    const key = KEYS.filter(k => k.pc === this.state.keyPc)[0];
+    const parentTonic = MINOR_FAM[parent.id] ? key.min : key.maj;
+    const names = MODE_NAMES[parent.id];
+    const hasModes = !!names;
+    const mi = hasModes ? Math.min(this.state.mode || 0, names.length - 1) : 0;
+    let sc = parent, tonic = parentTonic, pc = key.pc, modeName = hasModes ? names[0] : null;
+    if (mi > 0) {
+      const n = parent.semis.length - 1;
+      const s = parent.semis.slice(0, n), pd = parent.degs.slice(0, n);
+      const semis = [], degs = [];
+      for (let k = 0; k < n; k++) {
+        semis.push((((s[(mi + k) % n] - s[mi]) % 12) + 12) % 12);
+        degs.push(((pd[(mi + k) % n] - pd[mi] + 7) % 7) + 1);
+      }
+      semis.push(12); degs.push(1);
+      sc = {id: parent.id, nom: parent.nom, semis, degs};
+      pc = (key.pc + s[mi]) % 12;
+      tonic = spell(parentTonic, pd[mi], pc);
+      modeName = names[mi];
+    }
+    return {parent, key, parentTonic, hasModes, mi, sc, tonic, pc, modeName};
+  }
+
+  modeScale(parent, parentTonic, keyPc, mi){
+    const names = MODE_NAMES[parent.id];
+    if (!mi) return {sc: parent, pc: keyPc, tonic: parentTonic, name: names ? names[0] : parent.nom};
+    const n = parent.semis.length - 1;
+    const s = parent.semis.slice(0, n), pd = parent.degs.slice(0, n);
+    const semis = [], degs = [];
+    for (let k = 0; k < n; k++) {
+      semis.push((((s[(mi + k) % n] - s[mi]) % 12) + 12) % 12);
+      degs.push(((pd[(mi + k) % n] - pd[mi] + 7) % 7) + 1);
+    }
+    semis.push(12); degs.push(1);
+    const pc = (keyPc + s[mi]) % 12;
+    return {sc: {id: parent.id, nom: parent.nom, semis, degs}, pc,
+      tonic: spell(parentTonic, pd[mi], pc), name: names ? names[mi] : parent.nom};
+  }
+
+  tCfg(){
+    const parent = SCALES.filter(s => s.id === (this.state.tScale || 'maj'))[0];
+    const key = KEYS.filter(k => k.pc === (this.state.tKey || 0))[0];
+    const rs = this.state.tRs == null ? 2 : this.state.tRs;
+    const parentTonic = MINOR_FAM[parent.id] ? key.min : key.maj;
+    const names = MODE_NAMES[parent.id];
+    const nModes = names ? names.length : 1;
+    const ex = names ? (this.state.tEx || 'one') : 'one';
+    const mi = Math.min(this.state.tMode || 0, nModes - 1);
+    const tempo = this.state.tempo || 70;
+    let seq = [mi];
+    if (ex === 'cycle') {
+      seq = [];
+      for (let i = 0; i < nModes; i++) seq.push(i);
+      for (let i = nModes - 2; i >= 0; i--) seq.push(i);
+    }
+    return {parent, key, parentTonic, rs, names, nModes, ex, mi, tempo, seq,
+      full: !!this.state.tFull, motif: this.state.tMotif || 'lin',
+      extra: this.state.tFull ? 0 : (this.state.tMotif === 'triad' ? 4 : MOTIF_STEP[this.state.tMotif] || 0)};
+  }
+
+  tSteps(){
+    const c = this.tCfg(), steps = [];
+    c.seq.forEach((m, slot) => {
+      const M = this.modeScale(c.parent, c.parentTonic, c.key.pc, m);
+      const f = this.rootFret(M.sc, M.pc, c.rs, c.extra);
+      const p = this.pattern(M.sc, c.rs, c.extra, c.extra, -f, 19 - f);
+      let asc, i0 = 0, iTop = -1;
+      if (c.full) {
+        const inf = this.info(M.sc), pool = [];
+        for (let s = 3; s >= 0; s--) {
+          for (let o = p.start; o <= p.end; o++) {
+            const iv = ((((OPEN_MIDI[s] + o) - OPEN_MIDI[c.rs]) % 12) + 12) % 12;
+            const g = inf[iv];
+            if (g) pool.push({str: s, off: o, d: g.d, v: g.v, midi: OPEN_MIDI[s] + f + o});
+          }
+        }
+        pool.sort((a, b) => a.midi - b.midi);
+        asc = pool.filter((n, i) => i === 0 || n.midi !== pool[i - 1].midi);
+      } else {
+        asc = p.notes.slice().sort((a, b) => a.v - b.v)
+          .map(n => ({str: n.str, off: n.off, d: n.d, v: n.v, midi: OPEN_MIDI[n.str] + f + n.off}));
+      }
+      asc.forEach((n, i) => {
+        if (c.full) { if (n.d === 1) { if (iTop < 0) i0 = i; iTop = i; } }
+        else { if (n.v === 0) i0 = i; if (n.v === 12) iTop = i; }
+      });
+      if (iTop <= i0) { i0 = 0; iTop = asc.length - 1; }
+      const line = this.applyMotif(asc, c.motif, i0, iTop);
+      line.forEach(n => steps.push({slot, m, M, f, str: n.str, off: n.off, d: n.d,
+        midi: n.midi, label: spell(M.tonic, n.d, M.pc + n.v)}));
+    });
+    return steps;
+  }
+
+  applyMotif(pool, motif, i0, iTop){
+    const n = pool.length, out = [];
+    const linear = () => {
+      const l = [];
+      for (let i = i0; i <= iTop; i++) l.push(pool[i]);
+      for (let i = iTop - 1; i >= i0; i--) l.push(pool[i]);
+      return l;
+    };
+    if (motif === 'lin') return linear();
+    if (motif === 'triad') {
+      for (let i = i0; i <= iTop && i + 4 < n; i++) [i, i + 2, i + 4, i + 2, i].forEach(j => out.push(pool[j]));
+      for (let i = iTop; i >= i0 && i - 4 >= 0; i--) [i, i - 2, i - 4, i - 2, i].forEach(j => out.push(pool[j]));
+    } else {
+      const k = MOTIF_STEP[motif] || 2;
+      for (let i = i0; i <= iTop && i + k < n; i++) { out.push(pool[i]); out.push(pool[i + k]); }
+      for (let i = iTop; i >= i0 && i - k >= 0; i--) { out.push(pool[i]); out.push(pool[i - k]); }
+    }
+    if (!out.length) return linear();
+    if (out[out.length - 1] !== pool[i0]) out.push(pool[i0]);
+    return out;
+  }
+
+  actx(){
+    try {
+      const ctx = this._ctx || (this._ctx = new (window.AudioContext || window.webkitAudioContext)());
+      if (ctx.state === 'suspended') ctx.resume();
+      return ctx;
+    } catch (e) { return null; }
+  }
+
+  piano(midi, dur, gainMul, at){
+    const ctx = this.actx();
+    if (!ctx) return;
+    const t = at == null ? ctx.currentTime + 0.02 : at;
+    const f = 440 * Math.pow(2, (midi - 69) / 12);
+    const amp = 0.34 * (gainMul == null ? 1 : gainMul);
+    const out = ctx.createGain();
+    out.gain.setValueAtTime(0.0001, t);
+    out.gain.exponentialRampToValueAtTime(amp, t + 0.005);
+    out.gain.exponentialRampToValueAtTime(amp * 0.32, t + 0.16);
+    out.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.setValueAtTime(Math.min(8000, f * 10), t);
+    lp.frequency.exponentialRampToValueAtTime(Math.max(600, f * 3), t + dur * 0.8);
+    out.connect(lp); lp.connect(ctx.destination);
+    [[1, 1], [2, 0.3], [3, 0.12], [4, 0.055], [5, 0.022], [6, 0.01]].forEach((p, i) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine';
+      o.frequency.value = f * p[0];
+      g.gain.value = p[1] * 0.5;
+      o.connect(g); g.connect(out);
+      o.start(t); o.stop(t + dur + 0.08);
+    });
+  }
+
+  tone(midi, dur, gainMul, at){
+    this.piano(midi, dur == null ? 0.9 : dur, gainMul, at);
+  }
+
+  sound(rootPc, quality, basePc){
+    const mode = this.state.cSound || 'note';
+    let iv = {maj7:[0,4,7,11], dom7:[0,4,7,10], m7:[0,3,7,10], m7b5:[0,3,6,10]}[quality] || [0,4,7,11];
+    if (this.state.cSev === false) iv = iv.slice(0, 3);
+    const b = basePc == null ? 0 : basePc;
+    const root = 48 + ((((rootPc - b) % 12) + 12) % 12);
+    const ctx = this.actx();
+    if (!ctx) return;
+    const t0 = ctx.currentTime + 0.03;
+    if (mode === 'note') return this.piano(root, 2.4, 1, t0);
+    if (mode === 'chord') return iv.forEach((v, i) => this.piano(root + v, 2.8, 0.42, t0 + i * 0.012));
+    iv.forEach((v, i) => this.piano(root + v, 1.7, 0.7, t0 + i * 0.17));
+  }
+
+  click(accent){
+    try {
+      const ctx = this._ctx || (this._ctx = new (window.AudioContext || window.webkitAudioContext)());
+      if (ctx.state === 'suspended') ctx.resume();
+      const t = ctx.currentTime + 0.01;
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'square';
+      o.frequency.value = accent ? 1760 : 1100;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(accent ? 0.35 : 0.14, t + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + (accent ? 0.09 : 0.055));
+      o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t + 0.12);
+    } catch (e) {}
+  }
+
+  tTick(){
+    if (!this.state.tRun) return;
+    const steps = this.tSteps(), i = this.state.tIdx || 0;
+    if (i >= steps.length) {
+      if (this.state.tLoop) { this.setState({tIdx: 0}, () => this.tTick()); return; }
+      this.setState({tRun: false, tIdx: 0}); return;
+    }
+    const ms = 60000 / this.tCfg().tempo;
+    if (this.state.tSound === 'click') this.click(i % 4 === 0);
+    else this.tone(steps[i].midi, Math.min(0.9, ms / 1000 * 0.9));
+    this._t = setTimeout(() => this.setState(s => ({tIdx: (s.tIdx || 0) + 1}), () => this.tTick()), ms);
+  }
+
+  tStart(){
+    if (this._t) clearTimeout(this._t);
+    this.setState({tRun: true, tIdx: 0}, () => this.tTick());
+  }
+
+  tStop(){
+    if (this._t) clearTimeout(this._t);
+    this.setState({tRun: false, tIdx: 0});
+  }
+
+  componentWillUnmount(){ if (this._t) clearTimeout(this._t); }
+
+  trainVals(){
+    const c = this.tCfg();
+    const steps = this.tSteps();
+    const run = !!this.state.tRun;
+    const idx = Math.min(this.state.tIdx || 0, steps.length - 1);
+    const cur = steps[idx];
+    const M = cur.M, f = cur.f;
+    const r = this.rows(M.sc, {mode:'note', pc: M.pc, tonic: M.tonic, rootFret: f, rs: c.rs, full: c.full, extra: c.extra});
+    const p = r.p;
+    r.rows.forEach((row, s) => row.cells.forEach((cell, ci) => {
+      const on = run && s === cur.str && (ci + p.start) === cur.off;
+      cell.isNote = cell.isNote && !on;
+      cell.isRoot = cell.isRoot && !on;
+      cell.isGhost = cell.isGhost && !on;
+      cell.isGhostRoot = cell.isGhostRoot && !on;
+      cell.isPlay = on;
+    }));
+
+    const hasNut = (f + p.start) <= 0;
+    const cut = hasNut ? (0 - f - p.start) : -1;
+    const nutCells = hasNut ? r.rows.map(row => row.cells[cut]) : [];
+    if (hasNut) {
+      r.rows.forEach(row => { row.cells = row.cells.slice(cut + 1); });
+      r.frets = r.frets.slice(cut + 1);
+    }
+
+    const modeChips = c.seq.map((m, i) => {
+      const MM = this.modeScale(c.parent, c.parentTonic, c.key.pc, m);
+      return {label: MM.tonic, name: MM.name,
+        sel: run && i === cur.slot, unsel: !(run && i === cur.slot),
+        pick: () => { this.tStop(); this.setState({tEx:'one', tMode: m}); }};
+    });
+
+    return {
+      tScales: SCALES.map(s => ({name: s.nom, sel: s.id === c.parent.id, unsel: s.id !== c.parent.id,
+        pick: () => { this.tStop(); this.setState({tScale: s.id, tMode: 0}); }})),
+      tKeys: KEYS.map(k => ({name: MINOR_FAM[c.parent.id] ? k.min : k.maj, sel: k.pc === c.key.pc, unsel: k.pc !== c.key.pc,
+        pick: () => { this.tStop(); this.setState({tKey: k.pc}); }})),
+      tRoots: [
+        {label:'Corde de Mi', sel: c.rs === 3, unsel: c.rs !== 3, pick: () => { this.tStop(); this.setState({tRs: 3}); }},
+        {label:'Corde de La', sel: c.rs === 2, unsel: c.rs !== 2, pick: () => { this.tStop(); this.setState({tRs: 2}); }}
+      ],
+      tHasModes: !!c.names,
+      tExOne: c.ex === 'one', tExCycle: c.ex === 'cycle',
+      pickOne: () => { this.tStop(); this.setState({tEx:'one'}); },
+      pickCycle: () => { this.tStop(); this.setState({tEx:'cycle'}); },
+      tModes: c.names ? c.names.map((nom, i) => {
+        const MM = this.modeScale(c.parent, c.parentTonic, c.key.pc, i);
+        return {tonic: MM.tonic, name: nom, sel: c.ex === 'one' && i === c.mi, unsel: !(c.ex === 'one' && i === c.mi),
+          pick: () => { this.tStop(); this.setState({tEx:'one', tMode: i}); }};
+      }) : [],
+      modeChips, showChips: c.ex === 'cycle',
+      tMotifs: MOTIFS.map(mo => ({nom: mo.nom, sub: mo.sub,
+        sel: mo.id === c.motif, unsel: mo.id !== c.motif,
+        pick: () => { this.tStop(); this.setState({tMotif: mo.id}); }})),
+      tFullOn: c.full, tFullOff: !c.full,
+      setOctave: () => { this.tStop(); this.setState({tFull: false}); },
+      setFull: () => { this.tStop(); this.setState({tFull: true}); },
+      tempo: c.tempo,
+      tempoDown: () => this.setState({tempo: Math.max(40, c.tempo - 5)}),
+      tempoUp: () => this.setState({tempo: Math.min(200, c.tempo + 5)}),
+      tRun: run, tIdle: !run,
+      tStart: () => this.tStart(), tStopFn: () => this.tStop(),
+      soundNotes: this.state.tSound !== 'click',
+      soundClick: this.state.tSound === 'click',
+      setSoundNotes: () => this.setState({tSound:'notes'}),
+      setSoundClick: () => this.setState({tSound:'click'}),
+      tLoop: !!this.state.tLoop,
+      loopLabel: this.state.tLoop ? 'Boucle activée' : 'Boucle désactivée',
+      toggleLoop: () => this.setState({tLoop: !this.state.tLoop}),
+      tRows: r.rows, tFrets: r.frets,
+      tMinWidth: (26 + (hasNut ? 46 : 0) + r.frets.length * 46) + 'px',
+      tHasNut: hasNut,
+      tNut: nutCells.map((cell, s) => Object.assign({name: STR_NAMES[s]}, cell)),
+      tabSystems: (function(){
+        const per = 16, sys = [];
+        for (let s0 = 0; s0 < steps.length; s0 += per) {
+          const chunk = steps.slice(s0, s0 + per);
+          const cols = [];
+          const len = Math.min(per, Math.ceil(chunk.length / 4) * 4);
+          for (let ci = 0; ci < len; ci++) {
+            const st = chunk[ci];
+            const act = !!st && run && (s0 + ci) === idx;
+            cols.push({
+              bar: ci % 4 === 3 && ci !== len - 1,
+              cells: [0, 1, 2, 3].map(s => {
+                const has = !!st && st.str === s;
+                return {n: has ? String(st.f + st.off) : '', on: has && !act, active: has && act};
+              })
+            });
+          }
+          sys.push({cols, width: (len / per * 100) + '%', minw: (len * 24) + 'px'});
+        }
+        return sys;
+      })(),
+      tTitle: M.tonic + ' ' + M.name.toLowerCase(),
+      tSub: (c.ex === 'cycle' ? 'Cycle des modes · ' + (cur.slot + 1) + '/' + c.seq.length : 'Un mode')
+        + ' · ' + (c.full ? 'position 4 cordes' : 'une octave')
+        + ' · ' + MOTIFS.filter(mo => mo.id === c.motif)[0].nom.toLowerCase(),
+      tCounter: run ? (idx + 1) + ' / ' + steps.length : steps.length + ' notes',
+      tPosLabel: 'Fondamentale ' + M.tonic + ' · corde de ' + (c.rs === 2 ? 'La' : 'Mi') + ', frette ' + f
+    };
+  }
+
+  circleVals(){
+    const SH = ['F','C','G','D','A','E','B'], FL = ['B','E','A','D','G','C','F'];
+    const SIG = {0:0, 7:1, 2:2, 9:3, 4:4, 11:5, 6:6, 1:-5, 8:-4, 3:-3, 10:-2, 5:-1};
+    const pcMaj = this.state.cPc == null ? 0 : this.state.cPc;
+    const isMin = !!this.state.cMin;
+    const relPc = (pcMaj + 9) % 12;
+    const n = SIG[pcMaj];
+    const sigShort = n === 0 ? 'aucune altération' : n > 0 ? n + ' ' + SHARP : (-n) + ' ' + FLAT;
+    const sigNotes = n === 0 ? '—' : n > 0
+      ? SH.slice(0, n).map(x => x + SHARP).join('  ')
+      : FL.slice(0, -n).map(x => x + FLAT).join('  ');
+
+    const majOf = p => KEYS.filter(k => k.pc === ((p % 12) + 12) % 12)[0].maj;
+    const minOf = p => KEYS.filter(k => k.pc === ((p % 12) + 12) % 12)[0].min;
+    const pc = isMin ? relPc : pcMaj;
+    const tonic = isMin ? minOf(relPc) : majOf(pcMaj);
+    const scale = SCALES.filter(s => s.id === (isMin ? 'min' : 'maj'))[0];
+
+    const P = (a, r) => {
+      const t = (a - 90) * Math.PI / 180;
+      return (50 + r * Math.cos(t)).toFixed(2) + ',' + (50 + r * Math.sin(t)).toFixed(2);
+    };
+    const wedge = (i, ri, ro) => {
+      const a0 = i * 30 - 15, a1 = i * 30 + 15;
+      return 'M' + P(a0, ro) + ' A' + ro + ',' + ro + ' 0 0 1 ' + P(a1, ro) +
+        ' L' + P(a1, ri) + ' A' + ri + ',' + ri + ' 0 0 0 ' + P(a0, ri) + ' Z';
+    };
+    const pos = (i, R) => {
+      const a = (-90 + i * 30) * Math.PI / 180;
+      return {x: (50 + R * Math.cos(a)).toFixed(2), y: (50 + R * Math.sin(a)).toFixed(2)};
+    };
+    const k = (pcMaj * 7) % 12;
+    const rel = i => ((((i - k) % 12) + 12) % 12);
+    const locked = !!this.state.cLock;
+    const sev = this.state.cSev !== false;
+    const mn = sev ? 'm7' : 'm';
+    const mk = (i, R, label, sub, inKey, tonic, p, rootPc, qual, ring) => {
+      const o = pos(i, R), g = RINGS[ring];
+      const lo = pos(i, g.lr), so = pos(i, g.sr);
+      return {label, sub: inKey ? sub : '', x: o.x, y: o.y,
+        d: wedge(i, g.ri, g.ro), lx: lo.x, ly: lo.y, sx: so.x, sy: so.y,
+        isTonic: tonic, inKey: inKey && !tonic, plain: !inKey && !tonic,
+        pick: () => { this.sound(rootPc, qual, pcMaj); if (!locked) p(); },
+        lock: () => { p(); this.setState({cLock: true}); }};
+    };
+    const RINGS = {
+      maj: {ri: 36, ro: 49, lr: 42.5, sr: 38.5},
+      min: {ri: 24, ro: 36, lr: 30, sr: 26.8},
+      dim: {ri: 12, ro: 24, lr: 18, sr: 15.4}
+    };
+    const circleMaj = [], circleMin = [], circleDim = [];
+    for (let i = 0; i < 12; i++) {
+      const p = (i * 7) % 12, d = rel(i), inK = d === 0 || d === 1 || d === 11;
+      const setMaj = () => this.setState({cPc: p, cMin: false});
+      circleMaj.push(mk(i, 42.5, majOf(p),
+        (d === 0 ? 'I' : d === 1 ? 'V' : 'IV') + (sev ? ' · ' + (d === 1 ? '7' : 'maj7') : ''),
+        inK, !isMin && d === 0, setMaj, p, inK && d === 1 ? 'dom7' : 'maj7', 'maj'));
+      circleMin.push(mk(i, 29, minOf((p + 9) % 12) + 'm',
+        (d === 0 ? 'vi' : d === 1 ? 'iii' : 'ii') + ' · ' + mn,
+        inK, isMin && d === 0, () => this.setState({cPc: p, cMin: true}), (p + 9) % 12, 'm7', 'min'));
+      circleDim.push(mk(i, 17, majOf(((i + 5) * 7) % 12) + '\u00b0',
+        'vii\u00b0', d === 0, false, setMaj, ((i + 5) * 7) % 12, 'm7b5', 'dim'));
+    }
+
+    const cSound = this.state.cSound || 'note';
+    const cSizeOpts = [{id:'tri', n:'Triades · 3 notes', v:false}, {id:'sev', n:'Tétrades · 4 notes', v:true}]
+      .map(o => ({label: o.n, sel: sev === o.v, notSel: sev !== o.v, pick: () => this.setState({cSev: o.v})}));
+    const cSoundOpts = [{id:'note', n:'Note seule'}, {id:'arp', n:'Arpège'}, {id:'chord', n:'Accord plaqué'}]
+      .map(o => ({label: o.n, sel: cSound === o.id, notSel: cSound !== o.id, pick: () => this.setState({cSound: o.id})}));
+
+    const cadence = isMin
+      ? spell(tonic, 2, pc + 2) + 'm7' + FLAT + '5   ' + spell(tonic, 5, pc + 7) + '7   ' + tonic + 'm7'
+      : spell(tonic, 2, pc + 2) + 'm7   ' + spell(tonic, 5, pc + 7) + '7   ' + tonic + 'maj7';
+
+    const voisines = isMin ? [
+      {l:'Sous-dominante IV', v: minOf(pc + 5) + 'm'},
+      {l:'Dominante V', v: majOf(pc + 7) + '7'},
+      {l:'Relative majeure', v: majOf(pcMaj)},
+      {l:'Parallèle majeure', v: majOf(pc)}
+    ] : [
+      {l:'Sous-dominante IV', v: majOf(pc + 5)},
+      {l:'Dominante V', v: majOf(pc + 7)},
+      {l:'Relative mineure', v: minOf(relPc) + 'm'},
+      {l:'Parallèle mineure', v: minOf(pc) + 'm'}
+    ];
+
+    const cPanels = [
+      {title:'Armure', hasBig:true, hasTable:false, hasSwitch:false, opts:[], big: sigNotes, lines: [
+        {l:'Altérations', v: sigShort},
+        {l: n >= 0 ? 'Ordre des ' + SHARP : 'Ordre des ' + FLAT, v: (n >= 0 ? SH : FL).join(' ')},
+        {l:'Enharmonie', v: pcMaj === 6 ? (isMin ? 'D' + SHARP + 'm / E' + FLAT + 'm' : 'F' + SHARP + ' / G' + FLAT) : '—'}
+      ]},
+      {title:'Accords diatoniques', hasBig:false, hasTable:true, big:'', lines: [],
+        hasSwitch: true, opts: cSizeOpts,
+        rows: this.chords(scale, pc, tonic, (this.props.degreeStyle || 'sym') === 'num', sev)},
+      {title:'Cadence II - V - I', hasBig:true, hasTable:false, hasSwitch:false, opts:[], big: cadence, lines: [
+        {l:'Tonique', v: tonic + (isMin ? ' mineur' : ' majeur')},
+        {l:'Gamme', v: tonic + (isMin ? ' mineure naturelle' : ' majeure')}
+      ]},
+      {title:'Tonalités voisines', hasBig:false, hasTable:false, hasSwitch:false, opts:[], big:'', lines: voisines}
+    ];
+
+    return {
+      cTonic: tonic + (isMin ? 'm' : ''), cSigShort: sigShort,
+      circleMaj, circleMin, circleDim, cPanels, cSoundOpts, cSizeOpts,
+      cLocked: locked, cUnlocked: !locked,
+      cToggleLock: () => this.setState({cLock: !locked}),
+      openInScales: () => this.setState({view:'scale', scaleId: isMin ? 'min' : 'maj', keyPc: pc, mode: 0})
+    };
+  }
+
+  play(){
+    const rs = this.state.rs == null ? 2 : this.state.rs;
+    const c = this.ctx();
+    const f = this.rootFret(c.sc, c.pc, rs);
+    const p = this.pattern(c.sc, rs);
+    const seq = p.notes.map(n => OPEN_MIDI[n.str] + f + n.off);
+    const all = seq.concat(seq.slice(0, -1).reverse());
+    try {
+      const ctx = this._ctx || (this._ctx = new (window.AudioContext || window.webkitAudioContext)());
+      if (ctx.state === 'suspended') ctx.resume();
+      const t0 = ctx.currentTime + 0.06;
+      all.forEach((m, i) => {
+        const t = t0 + i * 0.3, fr = 440 * Math.pow(2, (m - 69) / 12);
+        [[fr, 0.3, 'triangle'], [fr * 2, 0.12, 'sine']].forEach(pair => {
+          const o = ctx.createOscillator(), g = ctx.createGain();
+          o.type = pair[2]; o.frequency.value = pair[0];
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(pair[1], t + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.32);
+          o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t + 0.34);
+        });
+      });
+    } catch (e) {}
+  }
+
+  renderVals(){
+    const theme = this.state.theme || this.props.direction || 'nuit';
+    const num = (this.props.degreeStyle || 'sym') === 'num';
+    const rs = this.state.rs == null ? 2 : this.state.rs;
+    const themes = [
+      {label:'Direction A \u00b7 Studio', sel: theme === 'nuit', unsel: theme !== 'nuit', pick: () => this.setState({theme:'nuit'})},
+      {label:'Direction B \u00b7 Carnet', sel: theme === 'carnet', unsel: theme !== 'carnet', pick: () => this.setState({theme:'carnet'})}
+    ];
+    const roots = [
+      {label:'Fondamentale corde La', sel: rs === 2, unsel: rs !== 2, pick: () => this.setState({rs:2})},
+      {label:'Fondamentale corde Mi', sel: rs === 3, unsel: rs !== 3, pick: () => this.setState({rs:3})}
+    ];
+    const ghostNote = rs === 2
+      ? 'Les pastilles translucides sur la corde de Mi sont les notes de la gamme situ\u00e9es sous la fondamentale.'
+      : 'Les pastilles translucides sur la corde de Sol prolongent la gamme au-dessus de l\u2019octave.';
+    const base = {theme, themes, roots, ghostNote,
+      isMenu: this.state.view === 'menu',
+      isCercle: this.state.view === 'cercle',
+      isTrain: this.state.view === 'train',
+      openTrain: () => this.setState({view:'train'}),
+      isHome: this.state.view === 'home',
+      isScale: this.state.view === 'scale',
+      goMenu: () => this.setState({view:'menu'}),
+      openGammes: () => this.setState({view:'home'}),
+      openCercle: () => this.setState({view:'cercle'})
+    };
+
+    if (this.state.view === 'menu') return base;
+    if (this.state.view === 'cercle') return Object.assign(base, this.circleVals());
+    if (this.state.view === 'train') return Object.assign(base, this.trainVals());
+
+    if (this.state.view === 'home') {
+      base.cards = SCALES.map(sc => {
+        const r = this.rows(sc, {mode:'deg', num, rs});
+        return {
+          name: sc.nom,
+          count: (sc.semis.length - 1) + ' notes',
+          degrees: sc.semis.slice(0, -1).map((v, i) => degLabel(sc.degs[i], v, num)).join('   '),
+          rows: r.rows,
+          open: () => this.setState({view:'scale', scaleId: sc.id, mode:0})
+        };
+      });
+      return base;
+    }
+
+    const c = this.ctx();
+    const sc = c.sc, tonic = c.tonic, pc = c.pc;
+    const inf = this.info(sc);
+    const f = this.rootFret(sc, pc, rs);
+    const noteMode = this.state.labels === 'note';
+    const r = this.rows(sc, {mode: noteMode ? 'note' : 'deg', num, pc, tonic, rootFret: f, rs});
+
+    const zone = {}, pcMod = ((pc % 12) + 12) % 12;
+    [2, 3].forEach(st => {
+      const pp = this.pattern(sc, st);
+      for (let fr = 0; fr <= 19; fr++) {
+        if ((OPEN_MIDI[st] + fr) % 12 !== pcMod) continue;
+        pp.notes.forEach(nn => {
+          const fret = fr + nn.off;
+          if (nn.str >= 0 && nn.str <= 3 && fret >= 0 && fret <= 19) zone[nn.str + ':' + fret] = true;
+        });
+      }
+    });
+    const cellOf = (s, fr) => {
+      const iv = ((((OPEN_MIDI[s] + fr) - (OPEN_MIDI[rs] + f)) % 12) + 12) % 12;
+      const g = inf[iv];
+      const isRoot = !!g && iv === 0;
+      return {
+        label: g ? (noteMode ? spell(tonic, g.d, pc + g.v) : degLabel(g.d, g.v, num)) : '',
+        isNote: !!g && !isRoot, isRoot, inPos: !!zone[s + ':' + fr]
+      };
+    };
+    const neckRows = [];
+    for (let s = 0; s < 4; s++) {
+      const cells = [];
+      for (let fr = 1; fr <= 19; fr++) cells.push(cellOf(s, fr));
+      neckRows.push({name: STR_NAMES[s], cells, open: cellOf(s, 0)});
+    }
+    const marks = [3,5,7,9,12,15,17,19];
+    const neckFrets = [];
+    for (let fr = 1; fr <= 19; fr++) neckFrets.push({n: marks.indexOf(fr) >= 0 ? String(fr) : ''});
+
+    const chords = this.chords(sc, pc, tonic);
+    const panels = [
+      {title:'Formule (tons)', hasBig:true, big:this.formula(sc), lines:[
+        {l:'Intervalles', v: sc.semis.slice(0,-1).map((v, i) => degLabel(sc.degs[i], v, num)).join('  ')},
+        {l:'Fondamentale', v: tonic + ' \u00b7 fr. ' + f + (rs === 2 ? ' (corde La)' : ' (corde Mi)')}
+      ]},
+      {title:'Notes de la gamme', hasBig:true, big: sc.semis.map((v, i) => spell(tonic, sc.degs[i], pc + v)).join('  '), lines:[
+        {l:'Nombre de notes', v: String(sc.semis.length - 1)},
+        {l:'Tessiture du motif', v: '1 octave'}
+      ]},
+      {title: chords ? 'Accords diatoniques' : 'Accords associ\u00e9s', hasBig:false, big:'', lines: chords || this.usableChords(sc, tonic, c.mi)},
+      {title:'Gammes li\u00e9es', hasBig:false, big:'', lines: this.relatives(sc, pc, tonic, c.parent, c.parentTonic, c.mi)}
+    ];
+
+    const modes = c.hasModes ? MODE_NAMES[c.parent.id].map((nom, i) => {
+      const mpc = (c.key.pc + c.parent.semis[i]) % 12;
+      return {
+        tonic: spell(c.parentTonic, c.parent.degs[i], mpc), name: nom,
+        sel: i === c.mi, unsel: i !== c.mi,
+        pick: () => this.setState({mode: i})
+      };
+    }) : [];
+
+    return Object.assign(base, {
+      title: tonic + (c.modeName ? ' ' + c.modeName.toLowerCase() : ' \u2014 ' + sc.nom),
+      parentLabel: c.mi > 0 ? 'dans ' + c.parentTonic + ' ' + c.parent.nom.toLowerCase() : c.parent.nom,
+      hasModes: c.hasModes, modes,
+      positionLabel: 'Position 1 \u00b7 fondamentale corde de ' + (rs === 2 ? 'La' : 'Mi') + ', frette ' + f,
+      keys: KEYS.map(k => ({name: MINOR_FAM[c.parent.id] ? k.min : k.maj, sel: k.pc === c.key.pc, unsel: k.pc !== c.key.pc, pick: () => this.setState({keyPc: k.pc})})),
+      rows: r.rows, frets: r.frets,
+      labelBtn: noteMode ? 'Afficher les degr\u00e9s' : 'Afficher les notes',
+      toggleLabels: () => this.setState({labels: noteMode ? 'deg' : 'note'}),
+      neckRows, neckFrets, panels,
+      neckHint: 'Cases color\u00e9es : les notes du motif, \u00e0 chacune de ses occurrences (fondamentale sur Mi ou sur La)',
+      play: () => this.play(),
+      goHome: () => this.setState({view:'home'})
+    });
+  }
+}
+
+</script>
+</body>
+</html>

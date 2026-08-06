@@ -26,8 +26,10 @@ Autres scripts : `npm run build` (typecheck + build de production), `npm run pre
 1. **Gammes** — index visuel (un diagramme par type de gamme, degrés affichés), puis une page
    par gamme : 12 tonalités, modes, diagramme de position, manche complet 0–19, écoute audio et
    4 fiches théoriques.
-2. **Cercle des quintes** — roue à 3 anneaux (majeurs / mineurs relatifs / diminué) avec fenêtre
-   de tonalité : armure, accords diatoniques, cadence II-V-I, tonalités voisines.
+2. **Cercle des quintes** — roue à 3 anneaux en secteurs pleins (majeurs / mineurs relatifs /
+   diminué) avec fenêtre de tonalité : armure, accords diatoniques (triades ou tétrades), cadence
+   II-V-I, tonalités voisines. Chaque secteur sonne au clic — note seule, arpège ou accord plaqué ;
+   double-clic pour figer la tonalité et parcourir les degrés à l'oreille sans perdre le contexte.
 3. **Entraînement** — répétition métronomée : gamme, tonalité, corde de départ, exercice
    (un mode ou cycle des modes), étendue, motif, tempo, boucle, diagramme animé note à note
    et tablature générée.
@@ -47,7 +49,7 @@ src/
     training.ts     configuration, séquence et tablature d'un exercice
     scaleView.ts    assemblage des données de la page d'une gamme
   audio/
-    engine.ts       AudioContext unique, notes et clics de métronome
+    engine.ts       AudioContext unique, timbre piano, accords du cercle, métronome
     useSequencer.ts séquenceur à lookahead sur l'horloge audio
   components/     briques d'interface (diagrammes, tablature, boutons)
   views/          les 5 écrans
@@ -71,7 +73,13 @@ portage React Native / Expo.
   (lookahead 150 ms) plutôt que par `setTimeout` : le tempo reste stable même quand le navigateur
   ralentit les timers. Seul le suivi visuel passe par `requestAnimationFrame`.
 - **Audio.** Une unique `AudioContext`, créée au premier clic (contrainte navigateur) et reprise
-  si suspendue.
+  si suspendue. Timbre piano en synthèse additive (6 partiels sinus, enveloppe percussive,
+  passe-bas qui se referme sur la durée), partagé par les gammes, l'entraînement et le cercle.
+- **Voicing du cercle.** Les hauteurs sont calculées depuis la tonique de la tonalité —
+  `root = 48 + ((rootPc − basePc) mod 12)` — jamais en absolu : sinon les degrés supérieurs
+  sonnent une octave trop bas et la suite d'accords « saute ».
+- **Degrés du tableau diatonique.** Relatifs à la tonique de la tonalité, pas à la fondamentale
+  de l'accord (en do, Dm7 se lit `2 4 6 8`), et prolongés au-delà de l'octave.
 - **Accessibilité.** `aria-pressed` sur les boutons de sélection, focus visible, et description
   textuelle (`role="img"` + `aria-label`) des diagrammes et de la tablature, qui sont purement
   visuels.
@@ -85,6 +93,12 @@ portage React Native / Expo.
 - Le sélecteur de thème de l'en-tête est conservé comme réglage d'application ; ses libellés
   deviennent « Studio » et « Carnet » plutôt que « Direction A / B ».
 - Le manche complet et le diagramme d'entraînement défilent horizontalement sur écran étroit.
+- Le bouton « Écouter la gamme » utilise le timbre piano. Le prototype annonce ce timbre comme
+  s'appliquant à toute l'application, mais son `play()` n'a pas été refactorisé et garde l'ancien
+  son : l'intention déclarée a été suivie plutôt que le code.
+- Les secteurs de la roue sont des `<path>` SVG focalisables (`role="button"`, Entrée/Espace pour
+  écouter). Le verrouillage, non atteignable au double-clic clavier, reste accessible par le
+  bouton « Figer la tonalité » sous la roue.
 
 ## Référence de design
 

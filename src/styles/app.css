@@ -175,6 +175,13 @@ a:hover {
   background: var(--surface2);
 }
 
+/* Posé sur une carte : le fond passe en --bg pour rester lisible. */
+.segmented--onbg {
+  flex-wrap: wrap;
+  align-items: center;
+  background: var(--bg);
+}
+
 .seg {
   border: none;
   cursor: pointer;
@@ -194,6 +201,17 @@ a:hover {
 
 .seg--sm {
   padding: 8px 14px;
+  letter-spacing: normal;
+}
+
+.seg--md {
+  padding: 7px 15px;
+  letter-spacing: normal;
+}
+
+.seg--xs {
+  padding: 6px 13px;
+  font-size: 11.5px;
   letter-spacing: normal;
 }
 
@@ -416,6 +434,7 @@ a:hover {
 
 .panel__line {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
   gap: 14px;
   font-size: 14px;
@@ -881,120 +900,223 @@ a:hover {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 17%;
-  height: 17%;
-  border-radius: 50%;
-  border: 1px dashed var(--line);
+  width: 23%;
+  height: 23%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1px;
+  gap: 2px;
+  pointer-events: none;
 }
 
 .circle-center__tonic {
   font-family: var(--mono);
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 600;
+  line-height: 1;
 }
 
 .circle-center__sig {
-  font-size: 9px;
+  font-size: 8.5px;
   color: var(--dim);
   text-align: center;
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
-.circle-node {
+.circle-modes {
+  align-self: center;
+}
+
+.circle-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Secteurs pleins jointifs : la séparation est un liseré, pas un écart géométrique. */
+.wedge {
+  stroke: var(--bg);
+  stroke-width: 0.5;
+  cursor: pointer;
+}
+
+.wedge.is-inkey {
+  fill: color-mix(in oklch, var(--accent) 20%, transparent);
+}
+
+.wedge.is-tonic {
+  fill: var(--accent);
+}
+
+.wedge--maj.is-plain {
+  fill: var(--surface2);
+}
+
+.wedge--min.is-plain {
+  fill: var(--surface);
+}
+
+.wedge--dim.is-plain {
+  fill: var(--bg);
+  stroke: var(--line);
+}
+
+.wedge:hover {
+  opacity: 0.7;
+}
+
+.circle-hub {
+  fill: var(--surface);
+  stroke: var(--line);
+  stroke-width: 0.4;
+}
+
+/* Libellés HTML superposés au SVG — jamais mis à l'échelle par le viewBox. */
+.circle-label {
   position: absolute;
   transform: translate(-50%, -50%);
-  border-radius: 50%;
-  cursor: pointer;
-  padding: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   gap: 1px;
+  pointer-events: none;
+  text-align: center;
 }
 
-.circle-node__label {
+.circle-label__name {
   font-family: var(--mono);
   font-weight: 600;
-}
-
-.circle-node__sub {
-  font-size: 8px;
+  line-height: 1;
   color: var(--dim);
 }
 
-.circle-node--maj .circle-node__label {
-  font-size: 16px;
+.circle-label__sub {
+  font-family: var(--mono);
+  line-height: 1;
+  color: var(--dim);
 }
 
-.circle-node--min .circle-node__label {
-  font-size: 13px;
+.circle-label--maj .circle-label__name {
+  font-size: 17px;
 }
 
-.circle-node--dim .circle-node__label {
-  font-size: 11px;
+.circle-label--maj .circle-label__sub {
+  font-size: 8px;
 }
 
-.circle-node--dim .circle-node__sub {
-  font-size: 7px;
+.circle-label--min .circle-label__name {
+  font-size: 13.5px;
 }
 
-.circle-node.is-inkey {
-  border: 1px solid color-mix(in oklch, var(--accent) 55%, transparent);
+.circle-label--min .circle-label__sub {
+  font-size: 7.5px;
+}
+
+.circle-label--dim .circle-label__name {
+  font-size: 10.5px;
+}
+
+.circle-label--dim .circle-label__sub {
+  font-size: 6.5px;
+}
+
+.circle-label.is-inkey .circle-label__name {
+  color: var(--ink);
+}
+
+.circle-label.is-tonic .circle-label__name,
+.circle-label.is-tonic .circle-label__sub {
+  color: var(--accent-ink);
+}
+
+.circle-label.is-tonic .circle-label__sub {
+  opacity: 0.85;
+}
+
+.lock-btn {
+  align-self: center;
+  cursor: pointer;
+  border: var(--cardborder);
+  background: transparent;
+  color: var(--dim);
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.lock-btn:hover {
+  color: var(--ink);
+}
+
+.lock-btn.is-on {
+  border: 1px solid var(--accent);
   background: color-mix(in oklch, var(--accent) 16%, transparent);
   color: var(--ink);
 }
 
-.circle-node.is-tonic {
-  border: 1px solid var(--accent);
-  background: var(--accent);
-  color: var(--accent-ink);
+/* ---------- Tableau des accords diatoniques ---------- */
+
+.chord-switch {
+  align-self: flex-start;
 }
 
-.circle-node.is-tonic .circle-node__sub {
-  color: inherit;
-  opacity: 0.85;
+.chord-table {
+  display: flex;
+  flex-direction: column;
 }
 
-.circle-node.is-plain {
-  border: var(--cardborder);
+.chord-table__head,
+.chord-table__row {
+  display: grid;
+  /* Pistes en unités absolues : en `ch`, l'en-tête et les lignes n'utilisant pas la
+     même fonte, les colonnes se désaligneraient. */
+  grid-template-columns: 34px 1fr 1.25fr 1.25fr;
+  gap: 12px;
 }
 
-.circle-node--maj.is-plain {
-  background: var(--surface2);
-  color: var(--ink);
-}
-
-.circle-node--maj.is-plain .circle-node__label {
-  font-size: 15px;
-}
-
-.circle-node--maj.is-plain:hover {
-  border-color: var(--accent);
-}
-
-.circle-node--min.is-plain,
-.circle-node--dim.is-plain {
-  background: var(--bg);
-  color: var(--dim);
-}
-
-.circle-node--min.is-plain .circle-node__label {
-  font-size: 12px;
-}
-
-.circle-node--dim.is-plain .circle-node__label {
+.chord-table__head {
+  padding: 0 0 6px;
+  font-family: var(--mono);
   font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim);
+  text-align: center;
 }
 
-.circle-node--min.is-plain:hover,
-.circle-node--dim.is-plain:hover {
-  color: var(--ink);
+.chord-table__head span:nth-child(2) {
+  text-align: left;
+}
+
+.chord-table__row {
+  align-items: baseline;
+  padding: 6px 0;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono);
+}
+
+.chord-table__rn {
+  font-size: 12px;
+  color: var(--dim);
+  text-align: center;
+}
+
+.chord-table__acc {
+  font-size: 13.5px;
+}
+
+.chord-table__notes,
+.chord-table__degs {
+  font-size: 12.5px;
+  letter-spacing: 0.05em;
+  text-align: center;
+}
+
+.chord-table__degs {
+  color: var(--dim);
 }
 
 .circle-cta {

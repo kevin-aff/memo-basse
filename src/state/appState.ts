@@ -1,3 +1,4 @@
+import type { CircleSound } from '../audio/engine';
 import { STORAGE_KEY } from '../config';
 import type { LabelMode, ScaleId } from '../music/types';
 import type { Exercise } from '../music/training';
@@ -21,6 +22,12 @@ export interface AppState {
   // Section Cercle des quintes
   cPc: number;
   cMin: boolean;
+  /** rendu sonore au clic sur un secteur */
+  cSound: CircleSound;
+  /** accords diatoniques en tétrades (4 notes) plutôt qu'en triades */
+  cSev: boolean;
+  /** tonalité figée : le clic joue l'accord mais ne resélectionne plus */
+  cLock: boolean;
 
   // Section Entraînement
   tScale: ScaleId;
@@ -45,6 +52,9 @@ export const INITIAL_STATE: AppState = {
   rs: 2,
   cPc: 0,
   cMin: false,
+  cSound: 'note',
+  cSev: true,
+  cLock: false,
   tScale: 'maj',
   tKey: 0,
   tRs: 2,
@@ -62,6 +72,8 @@ const PERSISTED = [
   'theme',
   'labels',
   'rs',
+  'cSound',
+  'cSev',
   'tScale',
   'tKey',
   'tRs',

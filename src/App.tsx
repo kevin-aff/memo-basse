@@ -57,7 +57,14 @@ export default function App() {
         <CircleView
           cPc={state.cPc}
           cMin={state.cMin}
+          cSound={state.cSound}
+          cSev={state.cSev}
+          cLock={state.cLock}
           onPick={(cPc, cMin) => patch({ cPc, cMin })}
+          onPickAndLock={(cPc, cMin) => patch({ cPc, cMin, cLock: true })}
+          onSound={(cSound) => patch({ cSound })}
+          onSev={(cSev) => patch({ cSev })}
+          onLock={(cLock) => patch({ cLock })}
           onOpenInScales={(scaleId, keyPc) =>
             patch({ view: 'scale', scaleId, keyPc, mode: 0 })
           }

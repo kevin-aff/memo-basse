@@ -61,7 +61,18 @@ export const STR_NAMES_FR: Record<string, string> = {
 export const STRING_A = 2;
 export const STRING_E = 3;
 
-/** Qualité d'accord par empreinte d'intervalles (tierce-quinte-septième). */
+/** Qualité d'accord par empreinte d'intervalles (tierce-quinte) — triades. */
+export const QUAL3: Record<string, string> = {
+  '4-7': '',
+  '3-7': 'm',
+  '3-6': '°',
+  '4-8': '+',
+  '3-8': 'm(' + SHARP + '5)',
+  '2-7': 'sus2',
+  '5-7': 'sus4',
+};
+
+/** Qualité d'accord par empreinte d'intervalles (tierce-quinte-septième) — tétrades. */
 export const QUAL: Record<string, string> = {
   '4-7-11': 'maj7',
   '4-7-10': '7',
