@@ -1434,6 +1434,17 @@ a:hover {
   text-align: center;
 }
 
+.rk-check {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.rk-check .rk-stat {
+  flex: 1 1 130px;
+}
+
 .rk-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));

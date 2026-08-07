@@ -71,6 +71,11 @@ export function RhythmView({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const sessionRef = useRef<InputSession | null>(null);
+  // Compteur de contrôle : permet de régler le gain et de vérifier la détection
+  // avant de lancer l'exercice, plutôt que de découvrir un problème à l'arrivée.
+  const [hits, setHits] = useState(0);
+  const [lastLevel, setLastLevel] = useState(0);
+  const [peak, setPeak] = useState(0);
 
   const session = useRhythmSession({
     tempo: state.rTempo,
@@ -84,6 +89,7 @@ export function RhythmView({
     sessionRef.current = null;
     setInput(null);
     setLevel(0);
+    setPeak(0);
   }, []);
 
   useEffect(() => closeInput, [closeInput]);
@@ -100,10 +106,19 @@ export function RhythmView({
         }
         setDevices(await listInputs());
         sessionRef.current?.stop();
+        setHits(0);
+        setPeak(0);
         const s = await startInput({
           deviceId: deviceId || undefined,
-          onOnset: (e) => pushOnset(e.time),
-          onLevel: setLevel,
+          onOnset: (e) => {
+            pushOnset(e.time);
+            setHits((h) => h + 1);
+            setLastLevel(e.level);
+          },
+          onLevel: (l) => {
+            setLevel(l);
+            setPeak((p) => Math.max(p, l));
+          },
         });
         sessionRef.current = s;
         setInput(s);
@@ -179,10 +194,42 @@ export function RhythmView({
         ) : null}
 
         {input ? (
-          <p className="rk-note rk-note--ok">
-            {input.label} · {Math.round(input.sampleRate / 100) / 10} kHz. Jouez une note : la
-            jauge doit bouger nettement.
-          </p>
+          <>
+            <p className="rk-note rk-note--ok">
+              {input.label} · {Math.round(input.sampleRate / 100) / 10} kHz.
+            </p>
+            <div className="rk-check">
+              <div className="rk-stat">
+                <span className="rk-stat__val">{hits}</span>
+                <span className="rk-stat__lab">attaques détectées</span>
+              </div>
+              <div className="rk-stat">
+                <span className="rk-stat__val">{peak.toFixed(3)}</span>
+                <span className="rk-stat__lab">
+                  niveau crête {peak > 0.9 ? '· sature' : peak < 0.02 ? '· trop faible' : '· correct'}
+                </span>
+              </div>
+              <div className="rk-stat">
+                <span className="rk-stat__val">{lastLevel.toFixed(3)}</span>
+                <span className="rk-stat__lab">dernière attaque</span>
+              </div>
+              <button
+                type="button"
+                className="btn btn--toggle btn--sm"
+                onClick={() => {
+                  setHits(0);
+                  setPeak(0);
+                }}
+              >
+                Remettre à zéro
+              </button>
+            </div>
+            <p className="rk-note">
+              Avant de lancer l'exercice : jouez une dizaine de notes détachées. Le compteur doit
+              avancer d'exactement une unité par note. S'il n'avance pas, montez le gain de la
+              Scarlett ; s'il avance de deux, baissez-le.
+            </p>
+          </>
         ) : null}
         {error ? <p className="rk-note rk-note--err">{error}</p> : null}
       </section>
