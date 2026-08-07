@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { listInputs, requestPermission, startInput } from '../audio/input';
-import type { InputDevice, InputSession } from '../audio/input';
+import { describeInputError, listInputs, requestPermission, startInput } from '../audio/input';
+import type { InputDevice, InputError, InputSession } from '../audio/input';
 import { BackButton, Eyebrow, Field, cx } from '../components/ui';
 import {
   BEATS_PER_BAR,
@@ -12,6 +12,19 @@ import {
 import type { NoteResult, Verdict } from '../rhythm/exercise';
 import { useRhythmSession } from '../rhythm/useRhythmSession';
 import type { AppState } from '../state/appState';
+
+/** Chaque cause appelle un geste précis : le message le dit plutôt que de rester vague. */
+const ERROR_HELP: Record<InputError, string> = {
+  refuse:
+    "Le navigateur bloque le micro pour ce site. Cliquez sur l'icône à gauche de l'adresse (cadenas ou curseurs), mettez « Microphone » sur « Autoriser », puis rechargez la page.",
+  introuvable:
+    "Aucune entrée audio disponible. Vérifiez que la Scarlett est bien branchée et reconnue par Windows.",
+  occupee:
+    "L'interface est déjà utilisée en exclusif par un autre logiciel — Ableton Live, OBS, Zoom… Fermez-le puis réessayez.",
+  nonSecurise:
+    "L'accès au micro exige une page sécurisée : ouvrez l'application en https, ou en local sur localhost.",
+  inconnu: "Impossible d'ouvrir l'entrée audio.",
+};
 
 const VERDICT_LABEL: Record<Verdict, string> = {
   juste: 'juste',
@@ -99,9 +112,9 @@ export function RhythmView({
       setBusy(true);
       setError(null);
       try {
-        const ok = await requestPermission();
-        if (!ok) {
-          setError("Accès au micro refusé. Autorisez-le dans le navigateur puis réessayez.");
+        const refus = await requestPermission();
+        if (refus) {
+          setError(ERROR_HELP[refus]);
           return;
         }
         setDevices(await listInputs());
@@ -123,7 +136,7 @@ export function RhythmView({
         sessionRef.current = s;
         setInput(s);
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Impossible d'ouvrir l'entrée audio.");
+        setError(ERROR_HELP[describeInputError(e)]);
       } finally {
         setBusy(false);
       }
