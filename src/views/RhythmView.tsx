@@ -10,6 +10,7 @@ import {
   totalBeats,
 } from '../rhythm/exercise';
 import type { NoteResult, Verdict } from '../rhythm/exercise';
+import { CALIB_BARS, CALIB_TEMPO, MIN_NOTES, useCalibration } from '../rhythm/useCalibration';
 import { useMetronome } from '../rhythm/useMetronome';
 import { useRhythmSession } from '../rhythm/useRhythmSession';
 import type { AppState } from '../state/appState';
@@ -98,6 +99,8 @@ export function RhythmView({
   });
   const pushOnset = session.pushOnset;
   const metro = useMetronome(state.rTempo);
+  const calib = useCalibration();
+  const calibPush = calib.pushOnset;
 
   const closeInput = useCallback(() => {
     sessionRef.current?.stop();
@@ -127,6 +130,7 @@ export function RhythmView({
           deviceId: deviceId || undefined,
           onOnset: (e) => {
             pushOnset(e.time);
+            calibPush(e.time);
             setHits((h) => h + 1);
             setLastLevel(e.level);
           },
@@ -143,7 +147,7 @@ export function RhythmView({
         setBusy(false);
       }
     },
-    [pushOnset],
+    [pushOnset, calibPush],
   );
 
   const score = session.score;
@@ -248,6 +252,100 @@ export function RhythmView({
         ) : null}
         {error ? <p className="rk-note rk-note--err">{error}</p> : null}
       </section>
+
+      {input ? (
+        <section className="card card--pad">
+          <div className="repertoire__head">
+            <Eyebrow>Latence d'entrée</Eyebrow>
+            <span className="rk-latency">{state.rLatencyMs} ms</span>
+          </div>
+          <p className="rk-note">
+            Le navigateur n'indique pas le temps que met le son à revenir de la Scarlett. Sans
+            cette constante, tous les écarts mesurés sont décalés de la même quantité. L'étalonnage
+            la mesure : {CALIB_BARS} mesures de noires à {CALIB_TEMPO} BPM, une note sur chaque
+            clic. Jouez régulièrement, sans chercher à corriger.
+          </p>
+
+          <div className="rk-input">
+            {calib.running ? (
+              <>
+                <button type="button" className="btn btn--outline btn--sm" onClick={calib.stop}>
+                  ■ Terminer maintenant
+                </button>
+                <span className="rk-progress">
+                  {calib.captured} note{calib.captured > 1 ? 's' : ''} captée
+                  {calib.captured > 1 ? 's' : ''} sur {calib.total}
+                </span>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="btn btn--primary btn--sm"
+                disabled={session.running}
+                onClick={() => {
+                  metro.stop();
+                  calib.start();
+                }}
+              >
+                ▶ Étalonner la latence
+              </button>
+            )}
+          </div>
+
+          {!calib.running && calib.result ? (
+            <div className="rk-check">
+              <div className="rk-stat">
+                <span className="rk-stat__val">
+                  {calib.result.medianMs > 0 ? '+' : ''}
+                  {calib.result.medianMs.toFixed(0)} ms
+                </span>
+                <span className="rk-stat__lab">latence mesurée</span>
+              </div>
+              <div className="rk-stat">
+                <span className="rk-stat__val">± {calib.result.spreadMs.toFixed(0)} ms</span>
+                <span className="rk-stat__lab">
+                  dispersion {calib.result.spreadMs > 25 ? '· jeu irrégulier' : '· fiable'}
+                </span>
+              </div>
+              <div className="rk-stat">
+                <span className="rk-stat__val">{calib.result.count}</span>
+                <span className="rk-stat__lab">notes retenues</span>
+              </div>
+              <button
+                type="button"
+                className="btn btn--primary btn--sm"
+                onClick={() => {
+                  patch({ rLatencyMs: Math.round(calib.result?.medianMs ?? 0) });
+                  calib.reset();
+                }}
+              >
+                Appliquer
+              </button>
+            </div>
+          ) : null}
+
+          {!calib.running && !calib.result && calib.captured > 0 ? (
+            <p className="rk-note rk-note--err">
+              Moins de {MIN_NOTES} notes exploitables : la médiane ne serait pas fiable. Vérifiez le
+              gain et recommencez.
+            </p>
+          ) : null}
+
+          <div className="rk-calib__row">
+            <label htmlFor="lat">Réglage manuel</label>
+            <input
+              id="lat"
+              type="range"
+              min={-50}
+              max={200}
+              step={1}
+              value={state.rLatencyMs}
+              onChange={(e) => patch({ rLatencyMs: Number(e.target.value) })}
+            />
+            <span className="rk-calib__val">{state.rLatencyMs} ms</span>
+          </div>
+        </section>
+      ) : null}
 
       <div className="train-row">
         <div className="train-row__keys">
@@ -433,33 +531,17 @@ export function RhythmView({
           ))}
 
           <div className="rk-calib">
-            <div className="rk-calib__row">
-              <label htmlFor="lat">Latence d'entrée corrigée</label>
-              <input
-                id="lat"
-                type="range"
-                min={-50}
-                max={150}
-                step={1}
-                value={state.rLatencyMs}
-                onChange={(e) => patch({ rLatencyMs: Number(e.target.value) })}
-              />
-              <span className="rk-calib__val">{state.rLatencyMs} ms</span>
-            </div>
             <p className="rk-note">
-              Le navigateur n'indique pas la latence de capture : les écarts bruts sont donc
-              décalés d'une constante. Si vous avez joué régulièrement, le bouton ci-dessous la
-              déduit de cette session — le résultat se recalcule aussitôt.
+              Latence appliquée : {state.rLatencyMs} ms. Elle se règle plus haut — l'étalonnage sur
+              des noires lentes est plus sûr que ce report, qui mêle latence et placement.
             </p>
             <button
               type="button"
               className="btn btn--toggle btn--sm"
               disabled={session.rawMedianMs === null}
-              onClick={() =>
-                patch({ rLatencyMs: Math.round(session.rawMedianMs ?? 0) })
-              }
+              onClick={() => patch({ rLatencyMs: Math.round(session.rawMedianMs ?? 0) })}
             >
-              Caler sur cette session
+              À défaut, caler sur cette session
               {session.rawMedianMs !== null
                 ? ` (${session.rawMedianMs > 0 ? '+' : ''}${session.rawMedianMs.toFixed(0)} ms)`
                 : ''}
