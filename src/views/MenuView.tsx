@@ -20,6 +20,12 @@ const ENTRIES: { num: string; title: string; desc: string; view: View }[] = [
     desc: 'Répétition des gammes au tempo, mode par mode.',
     view: 'train',
   },
+  {
+    num: '04',
+    title: 'Précision rythmique',
+    desc: 'Jouez dans la carte son, mesurez votre placement note à note.',
+    view: 'rythme',
+  },
 ];
 
 export function MenuView({ onOpen }: { onOpen: (v: View) => void }) {

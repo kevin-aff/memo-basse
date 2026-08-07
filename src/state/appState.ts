@@ -3,7 +3,7 @@ import { STORAGE_KEY } from '../config';
 import type { LabelMode, ScaleId } from '../music/types';
 import type { Exercise } from '../music/training';
 
-export type View = 'menu' | 'home' | 'scale' | 'cercle' | 'train';
+export type View = 'menu' | 'home' | 'scale' | 'cercle' | 'train' | 'rythme';
 export type Theme = 'nuit' | 'carnet';
 export type Sound = 'notes' | 'click';
 
@@ -40,6 +40,14 @@ export interface AppState {
   tempo: number;
   tLoop: boolean;
   tSound: Sound;
+
+  // Section Précision rythmique
+  /** entrée audio choisie ; vide = entrée par défaut du système */
+  rDevice: string;
+  rTempo: number;
+  rOffBeat: boolean;
+  /** latence d'entrée à retrancher aux attaques détectées, en millisecondes */
+  rLatencyMs: number;
 }
 
 export const INITIAL_STATE: AppState = {
@@ -65,6 +73,10 @@ export const INITIAL_STATE: AppState = {
   tempo: 70,
   tLoop: false,
   tSound: 'notes',
+  rDevice: '',
+  rTempo: 80,
+  rOffBeat: false,
+  rLatencyMs: 0,
 };
 
 /** Réglages conservés d'une session à l'autre — la navigation, elle, repart du menu. */
@@ -84,6 +96,10 @@ const PERSISTED = [
   'tempo',
   'tLoop',
   'tSound',
+  'rDevice',
+  'rTempo',
+  'rOffBeat',
+  'rLatencyMs',
 ] as const satisfies readonly (keyof AppState)[];
 
 export function loadState(): AppState {
