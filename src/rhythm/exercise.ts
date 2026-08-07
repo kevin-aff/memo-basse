@@ -1,22 +1,23 @@
+import { SUBDIVISIONS, subdivPattern } from './metronome';
+
+/** Une mesure ne porte qu'un renvoi vers {@link SUBDIVISIONS} : le motif en découle. */
 export interface Bar {
-  /** notes par temps : 1 = noires, 2 = croches, 4 = doubles croches */
-  subdivision: number;
-  nom: string;
-  court: string;
+  subdiv: number;
 }
 
-/** Mesures à 4 temps : noires, croches, doubles, croches, noires. */
+export const barName = (b: Bar): string => SUBDIVISIONS[b.subdiv]?.nom ?? '—';
+
+/** Enchaînement par défaut : noires, croches, doubles, croches, noires. */
 export const EXERCISE: Bar[] = [
-  { subdivision: 1, nom: 'Noires', court: '♩' },
-  { subdivision: 2, nom: 'Croches', court: '♪' },
-  { subdivision: 4, nom: 'Doubles croches', court: '♬' },
-  { subdivision: 2, nom: 'Croches', court: '♪' },
-  { subdivision: 1, nom: 'Noires', court: '♩' },
+  { subdiv: 0 },
+  { subdiv: 1 },
+  { subdiv: 5 },
+  { subdiv: 1 },
+  { subdiv: 0 },
 ];
 
+/** Métrique par défaut, quand l'appelant n'en impose pas. */
 export const BEATS_PER_BAR = 4;
-/** Mesure de décompte avant le départ. */
-export const COUNT_IN_BEATS = 4;
 
 export interface ExpectedNote {
   /** position en temps depuis le début de l'exercice, décompte exclu */
@@ -32,27 +33,39 @@ export interface ExpectedNote {
  * En contretemps, chaque note est décalée d'une **demi-valeur de sa subdivision** :
  * les noires tombent sur les « et », les croches entre les croches, etc. Le métronome,
  * lui, reste sur les temps — c'est lui la référence.
+ *
+ * Les positions creuses des triolets à trou ne portent aucune note attendue : on ne
+ * réclame pas au joueur ce que le clic lui-même ne donne pas.
  */
-export function buildGrid(offBeat: boolean, bars: Bar[] = EXERCISE): ExpectedNote[] {
+export function buildGrid(
+  offBeat: boolean,
+  bars: Bar[] = EXERCISE,
+  beatsPerBar = BEATS_PER_BAR,
+): ExpectedNote[] {
   const out: ExpectedNote[] = [];
+  const nb = Math.max(1, beatsPerBar);
   let beat = 0;
   bars.forEach((b, bar) => {
-    const step = 1 / b.subdivision;
+    const motif = subdivPattern(b.subdiv);
+    const n = motif.length;
+    const step = 1 / n;
     const shift = offBeat ? step / 2 : 0;
-    for (let i = 0; i < BEATS_PER_BAR * b.subdivision; i++) {
+    for (let i = 0; i < nb * n; i++) {
+      if (!motif[i % n]) continue;
       out.push({
         beat: beat + i * step + shift,
         bar,
         indexInBar: i,
-        subdivision: b.subdivision,
+        subdivision: n,
       });
     }
-    beat += BEATS_PER_BAR;
+    beat += nb;
   });
   return out;
 }
 
-export const totalBeats = (bars: Bar[] = EXERCISE): number => bars.length * BEATS_PER_BAR;
+export const totalBeats = (bars: Bar[] = EXERCISE, beatsPerBar = BEATS_PER_BAR): number =>
+  bars.length * Math.max(1, beatsPerBar);
 
 export type Verdict = 'juste' | 'correct' | 'imprecis' | 'manque';
 

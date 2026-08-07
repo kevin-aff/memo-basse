@@ -1401,9 +1401,10 @@ a:hover {
   transition: width 60ms linear;
 }
 
+/* Le nombre de mesures est libre : la grille s'adapte au lieu d'en figer cinq. */
 .rk-timeline {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
   gap: 8px;
 }
 
@@ -1626,6 +1627,383 @@ a:hover {
   font-weight: 600;
   min-width: 56px;
   text-align: right;
+}
+
+/* ---------- Métronome ---------- */
+
+.mt-mouvement {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dim);
+  letter-spacing: 0.04em;
+}
+
+.mt-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.mt-bpm {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.mt-bpm__in {
+  width: 4ch;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 46px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-align: left;
+}
+
+.mt-bpm__in:disabled {
+  color: var(--accent);
+  opacity: 1;
+}
+
+/* Les flèches natives sont trop petites pour servir et déplacent la mise en page. */
+.mt-bpm__in::-webkit-outer-spin-button,
+.mt-bpm__in::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+.mt-bpm__in[type='number'] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.mt-bpm__unit {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--dim);
+}
+
+.mt-transport {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mt-slide {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mt-slide input[type='range'] {
+  flex: 1 1 auto;
+  min-width: 0;
+  accent-color: var(--accent);
+}
+
+.mt-beats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mt-beats.is-muet {
+  opacity: 0.45;
+}
+
+/* Le poids visuel suit le niveau : on lit la mesure d'un coup d'œil, sans légende. */
+.mt-beat {
+  cursor: pointer;
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  border: var(--cardborder);
+  background: var(--surface2);
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 90ms linear,
+    border-color 90ms linear;
+}
+
+.mt-beat--0 {
+  border-style: dashed;
+  opacity: 0.55;
+}
+
+.mt-beat--1 .mt-beat__n {
+  opacity: 0.6;
+}
+
+.mt-beat--2 {
+  border-color: var(--dim);
+  color: var(--ink);
+}
+
+.mt-beat--3 {
+  border-color: var(--ink);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.mt-beat.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.mt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.mt-sig {
+  font-family: var(--mono);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ink);
+}
+
+.mt-meter,
+.mt-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+.mt-step,
+.mt-note {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mt-step__lab {
+  font-size: 11px;
+  color: var(--dim);
+}
+
+.mt-note__opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+button.chip {
+  cursor: pointer;
+  background: var(--surface2);
+}
+
+button.chip:hover {
+  border-color: var(--dim);
+}
+
+.grid--sub {
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+}
+
+.mt-pat {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 14px;
+  margin-bottom: 2px;
+}
+
+.mt-pip {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--dim);
+  box-sizing: border-box;
+}
+
+.mt-pip--head {
+  width: 11px;
+  height: 11px;
+}
+
+.mt-pip--off {
+  background: transparent;
+  border: 1px solid var(--line);
+}
+
+.mt-pip.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.mt-mode {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ---------- Enchaînement composé ---------- */
+
+/* Piloté par l'enchaînement : le choix reste lisible mais n'appelle plus le clic. */
+.opt.is-auto {
+  cursor: default;
+  opacity: 0.75;
+}
+
+.opt.is-auto.is-on {
+  opacity: 1;
+}
+
+.mt-segs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mt-seg {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px;
+  padding: 10px 12px;
+  border: var(--cardborder);
+  border-radius: 12px;
+  background: var(--surface2);
+}
+
+.mt-seg > .mt-pat {
+  margin-bottom: 12px;
+}
+
+.mt-seg__val {
+  flex: 1 1 180px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mt-seg .mt-preset__del {
+  margin-bottom: 4px;
+}
+
+.mt-preset__del:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.mt-plan {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.mt-plan__bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 7px 9px;
+  border: var(--cardborder);
+  border-radius: 10px;
+  background: var(--surface2);
+}
+
+.mt-plan__bar.is-on {
+  border-color: var(--accent);
+  background: color-mix(in oklch, var(--accent) 18%, transparent);
+}
+
+.mt-plan__n {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--dim);
+}
+
+.mt-presets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mt-preset {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: var(--cardborder);
+  border-radius: 12px;
+  background: var(--surface2);
+  padding: 4px 8px;
+}
+
+.mt-preset__fav,
+.mt-preset__del {
+  cursor: pointer;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--dim);
+  font-size: 15px;
+  line-height: 1;
+}
+
+.mt-preset__fav.is-on {
+  color: var(--accent);
+}
+
+.mt-preset__del:hover,
+.mt-preset__fav:hover {
+  color: var(--ink);
+}
+
+.mt-preset__go {
+  cursor: pointer;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 4px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  color: inherit;
+}
+
+.mt-preset__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.mt-preset__sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
 }
 
 /* ---------- Tablature ---------- */

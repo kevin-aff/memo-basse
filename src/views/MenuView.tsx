@@ -23,7 +23,7 @@ const ENTRIES: { num: string; title: string; desc: string; view: View }[] = [
   {
     num: '04',
     title: 'Précision rythmique',
-    desc: 'Jouez dans la carte son, mesurez votre placement note à note.',
+    desc: 'Métronome complet, et mesure de votre placement note à note.',
     view: 'rythme',
   },
 ];

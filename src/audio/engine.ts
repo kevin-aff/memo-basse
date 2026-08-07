@@ -79,6 +79,53 @@ export function schedulePiano(
   });
 }
 
+/** Timbres du clic : onde, hauteur de référence et durée relative de l'extinction. */
+const TICK_TIMBRE: { type: OscillatorType; hz: number; decay: number }[] = [
+  { type: 'square', hz: 1150, decay: 1 }, // bois : sec, très lisible sur une basse
+  { type: 'sine', hz: 1500, decay: 2.4 }, // cloche : tenue plus longue, moins agressive
+  { type: 'triangle', hz: 800, decay: 1.5 }, // bip : plus grave, se mêle moins au médium
+];
+
+/** Hauteur relative et niveau sonore de chaque degré d'accent. */
+const TICK_LEVEL: Record<number, { ratio: number; gain: number; hold: number }> = {
+  1: { ratio: 0.68, gain: 0.07, hold: 0.75 },
+  2: { ratio: 1, gain: 0.16, hold: 1 },
+  3: { ratio: 1.5, gain: 0.34, hold: 1.5 },
+};
+
+/**
+ * Clic de métronome à niveau variable.
+ *
+ * @param level 0 muet, 1 faible, 2 normal, 3 fort
+ * @param timbre index dans {@link TICK_TIMBRE}
+ * @param volume 0 à 1
+ */
+export function scheduleTick(
+  ac: AudioContext,
+  level: number,
+  time: number,
+  timbre = 0,
+  volume = 1,
+): void {
+  const lv = TICK_LEVEL[level];
+  if (!lv || volume <= 0) return;
+  const tb = TICK_TIMBRE[timbre] ?? TICK_TIMBRE[0];
+  const dur = 0.05 * tb.decay * lv.hold;
+  const peak = Math.max(0.0002, lv.gain * volume);
+
+  const o = ac.createOscillator();
+  const g = ac.createGain();
+  o.type = tb.type;
+  o.frequency.value = tb.hz * lv.ratio;
+  g.gain.setValueAtTime(0.0001, time);
+  g.gain.exponentialRampToValueAtTime(peak, time + 0.003);
+  g.gain.exponentialRampToValueAtTime(0.0001, time + dur);
+  o.connect(g);
+  g.connect(ac.destination);
+  o.start(time);
+  o.stop(time + dur + 0.03);
+}
+
 /** Clic de métronome : square 1760 Hz accentué, 1100 Hz sinon. */
 export function scheduleClick(ac: AudioContext, accent: boolean, time: number): void {
   const o = ac.createOscillator();
