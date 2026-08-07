@@ -24,14 +24,36 @@ const CONSTRAINTS = (deviceId?: string): MediaStreamConstraints => ({
   video: false,
 });
 
-/** Demande l'autorisation micro. Sans elle, les entrées n'ont pas de nom exploitable. */
-export async function requestPermission(): Promise<boolean> {
+export type InputError = 'refuse' | 'introuvable' | 'occupee' | 'nonSecurise' | 'inconnu';
+
+/**
+ * Traduit l'échec de `getUserMedia` en cause exploitable. Le nom de l'exception
+ * distingue des situations qui appellent des gestes très différents : autoriser
+ * dans le navigateur, brancher l'interface, ou fermer le logiciel qui la retient.
+ */
+export function describeInputError(e: unknown): InputError {
+  if (!window.isSecureContext) return 'nonSecurise';
+  const name = e instanceof Error ? e.name : '';
+  if (name === 'NotAllowedError' || name === 'SecurityError') return 'refuse';
+  if (name === 'NotFoundError' || name === 'OverconstrainedError') return 'introuvable';
+  // L'interface est ouverte en exclusif par un autre logiciel (DAW, OBS…).
+  if (name === 'NotReadableError' || name === 'AbortError') return 'occupee';
+  return 'inconnu';
+}
+
+/**
+ * Demande l'autorisation micro. Sans elle, les entrées n'ont pas de nom exploitable.
+ * Renvoie `null` si tout va bien, sinon la cause du refus.
+ */
+export async function requestPermission(): Promise<InputError | null> {
+  if (!window.isSecureContext) return 'nonSecurise';
+  if (!navigator.mediaDevices?.getUserMedia) return 'introuvable';
   try {
     const s = await navigator.mediaDevices.getUserMedia(CONSTRAINTS());
     s.getTracks().forEach((t) => t.stop());
-    return true;
-  } catch {
-    return false;
+    return null;
+  } catch (e) {
+    return describeInputError(e);
   }
 }
 
