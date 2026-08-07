@@ -1434,6 +1434,18 @@ a:hover {
   text-align: center;
 }
 
+.rk-latency {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.rk-progress {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--dim);
+}
+
 .rk-tempo {
   display: flex;
   flex-wrap: wrap;
