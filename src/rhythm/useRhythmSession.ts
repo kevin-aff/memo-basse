@@ -1,13 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getCtx, scheduleClick } from '../audio/engine';
-import {
-  BEATS_PER_BAR,
-  COUNT_IN_BEATS,
-  buildGrid,
-  scoreRun,
-  totalBeats,
-} from './exercise';
-import type { ExpectedNote, Score } from './exercise';
+import { BEATS_PER_BAR, buildGrid, scoreRun, totalBeats } from './exercise';
+import type { Bar, ExpectedNote, Score } from './exercise';
 
 interface RunData {
   grid: ExpectedNote[];
@@ -35,13 +29,20 @@ export function useRhythmSession({
   tempo,
   offBeat,
   latencyMs,
+  bars,
+  beatsPerBar = BEATS_PER_BAR,
 }: {
   tempo: number;
   offBeat: boolean;
   latencyMs: number;
+  /** enchaînement à jouer : un passage, décompte exclu */
+  bars: Bar[];
+  /** temps par mesure ; le décompte en occupe exactement une */
+  beatsPerBar?: number;
 }): RhythmSession {
+  const nb = Math.max(1, beatsPerBar);
   const [running, setRunning] = useState(false);
-  const [position, setPosition] = useState(-COUNT_IN_BEATS);
+  const [position, setPosition] = useState(-nb);
   const [run, setRun] = useState<RunData | null>(null);
 
   const runningRef = useRef(false);
@@ -52,7 +53,7 @@ export function useRhythmSession({
   const endTimer = useRef<number | null>(null);
   const pending = useRef<RunData | null>(null);
 
-  const grid = useMemo(() => buildGrid(offBeat), [offBeat]);
+  const grid = useMemo(() => buildGrid(offBeat, bars, nb), [offBeat, bars, nb]);
 
   const cleanup = (): void => {
     if (raf.current !== null) {
@@ -94,18 +95,19 @@ export function useRhythmSession({
 
     const s = 60 / tempo;
     spb.current = s;
-    const g = buildGrid(offBeat);
+    const g = buildGrid(offBeat, bars, nb);
     const countStart = ac.currentTime + 0.3;
-    const t0 = countStart + COUNT_IN_BEATS * s;
+    // Le décompte occupe une mesure entière : sa longueur suit donc la métrique.
+    const t0 = countStart + nb * s;
     anchor.current = t0;
 
     // Métronome : décompte puis toute la durée de l'exercice, accent en début de mesure.
-    for (let b = 0; b < COUNT_IN_BEATS; b++) {
+    for (let b = 0; b < nb; b++) {
       scheduleClick(ac, b === 0, countStart + b * s);
     }
-    const beats = totalBeats();
+    const beats = totalBeats(bars, nb);
     for (let b = 0; b < beats; b++) {
-      scheduleClick(ac, b % BEATS_PER_BAR === 0, t0 + b * s);
+      scheduleClick(ac, b % nb === 0, t0 + b * s);
     }
 
     pending.current = {
@@ -116,7 +118,7 @@ export function useRhythmSession({
     };
     detections.current = [];
     setRun(null);
-    setPosition(-COUNT_IN_BEATS);
+    setPosition(-nb);
     runningRef.current = true;
     setRunning(true);
 
@@ -127,20 +129,20 @@ export function useRhythmSession({
       Math.max(0, (endAt - ac.currentTime) * 1000),
     );
     raf.current = window.requestAnimationFrame(() => frameRef.current());
-  }, [tempo, offBeat]);
+  }, [tempo, offBeat, bars, nb]);
 
   const stop = useCallback(() => {
     cleanup();
     runningRef.current = false;
     setRunning(false);
-    setPosition(-COUNT_IN_BEATS);
+    setPosition(-nb);
     pending.current = null;
-  }, []);
+  }, [nb]);
 
   const clear = useCallback(() => {
     setRun(null);
-    setPosition(-COUNT_IN_BEATS);
-  }, []);
+    setPosition(-nb);
+  }, [nb]);
 
   useEffect(() => cleanup, []);
 
@@ -162,7 +164,9 @@ export function useRhythmSession({
     running,
     position,
     score,
-    grid: run?.grid ?? grid,
+    // La grille des réglages courants, jamais celle de la session passée : cette
+    // ligne annonce ce qu'on s'apprête à jouer. Le score, lui, garde la sienne.
+    grid,
     rawMedianMs,
     start,
     stop,

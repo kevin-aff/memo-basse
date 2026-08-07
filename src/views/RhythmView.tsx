@@ -1,14 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { describeInputError, listInputs, requestPermission, startInput } from '../audio/input';
 import type { InputDevice, InputError, InputSession } from '../audio/input';
+import { MetronomeCard, Pattern, PresetsCard, ProgramCard, TrainingCard } from '../components/Metronome';
 import { BackButton, Eyebrow, Field, cx } from '../components/ui';
-import {
-  BEATS_PER_BAR,
-  CORRECT_MS,
-  EXERCISE,
-  JUSTE_MS,
-  totalBeats,
-} from '../rhythm/exercise';
+import { CORRECT_MS, EXERCISE, JUSTE_MS, barName, totalBeats } from '../rhythm/exercise';
+import type { Bar } from '../rhythm/exercise';
+import { programToBars } from '../rhythm/metronome';
+import type { MetroSettings } from '../rhythm/metronome';
 import type { NoteResult, Verdict } from '../rhythm/exercise';
 import { CALIB_BARS, CALIB_TEMPO, MIN_NOTES, useCalibration } from '../rhythm/useCalibration';
 import { useMetronome } from '../rhythm/useMetronome';
@@ -38,12 +36,14 @@ const VERDICT_LABEL: Record<Verdict, string> = {
 /** Position d'une note dans la barre de résultats, en pourcentage de l'écart max affiché. */
 const DEV_SCALE = 80; // ms de part et d'autre du centre
 
-function NoteMarks({ results, bar }: { results: NoteResult[]; bar: number }) {
+function NoteMarks({ results, bar, name }: { results: NoteResult[]; bar: number; name: string }) {
   const rows = results.filter((r) => r.note.bar === bar);
   return (
     <div className="rk-bar">
       <div className="rk-bar__head">
-        <span className="rk-bar__name">{EXERCISE[bar].nom}</span>
+        <span className="rk-bar__name">
+          Mesure {bar + 1} · {name}
+        </span>
         <span className="rk-bar__count">{rows.length} notes</span>
       </div>
       <div className="rk-bar__marks">
@@ -92,13 +92,52 @@ export function RhythmView({
   const [lastLevel, setLastLevel] = useState(0);
   const [peak, setPeak] = useState(0);
 
+  // L'exercice mesuré joue l'enchaînement composé quand il est en service — un passage,
+  // même en boucle : on ne peut noter que ce qui a une fin.
+  const bars: Bar[] = useMemo(
+    () =>
+      state.rProg.on
+        ? programToBars(state.rProg).map((subdiv) => ({ subdiv }))
+        : EXERCISE,
+    [state.rProg],
+  );
+
   const session = useRhythmSession({
     tempo: state.rTempo,
     offBeat: state.rOffBeat,
     latencyMs: state.rLatencyMs,
+    bars,
+    beatsPerBar: state.rBeats,
   });
   const pushOnset = session.pushOnset;
-  const metro = useMetronome(state.rTempo);
+
+  const metroSettings: MetroSettings = useMemo(
+    () => ({
+      bpm: state.rTempo,
+      beats: state.rBeats,
+      note: state.rNote,
+      subdiv: state.rSubdiv,
+      accents: state.rAccents,
+      volume: state.rVolume,
+      timbre: state.rTimbre,
+      ramp: state.rRamp,
+      gap: state.rGap,
+      prog: state.rProg,
+    }),
+    [
+      state.rTempo,
+      state.rBeats,
+      state.rNote,
+      state.rSubdiv,
+      state.rAccents,
+      state.rVolume,
+      state.rTimbre,
+      state.rRamp,
+      state.rGap,
+      state.rProg,
+    ],
+  );
+  const metro = useMetronome(metroSettings);
   const calib = useCalibration();
   const calibPush = calib.pushOnset;
 
@@ -152,7 +191,7 @@ export function RhythmView({
 
   const score = session.score;
   const pos = session.position;
-  const currentBar = pos < 0 ? -1 : Math.floor(pos / BEATS_PER_BAR);
+  const currentBar = pos < 0 ? -1 : Math.floor(pos / Math.max(1, state.rBeats));
   const countIn = pos < 0 ? Math.ceil(-pos) : 0;
 
   return (
@@ -162,11 +201,17 @@ export function RhythmView({
         <h2 className="view__title">Précision rythmique</h2>
       </div>
 
+      <MetronomeCard state={state} patch={patch} metro={metro} />
+      <ProgramCard state={state} patch={patch} metro={metro} />
+      <TrainingCard state={state} patch={patch} metro={metro} />
+      <PresetsCard state={state} patch={patch} />
+
       <section className="card card--pad">
         <Eyebrow>Entrée audio</Eyebrow>
         <p className="rk-note">
-          Branchez la basse sur la Scarlett et choisissez son entrée ci-dessous. Le signal est
-          analysé dans la page : rien n'est enregistré ni envoyé.
+          Ce qui suit mesure le placement de vos notes et demande la basse branchée — le
+          métronome ci-dessus, lui, se passe d'instrument. Choisissez l'entrée de la Scarlett. Le
+          signal est analysé dans la page : rien n'est enregistré ni envoyé.
         </p>
 
         <div className="rk-input">
@@ -368,54 +413,6 @@ export function RhythmView({
 
       <div className="train-row">
         <div className="train-row__keys">
-          <Field label="Tempo">
-            <div className="rk-tempo">
-              <div className="stepper" role="group" aria-label="Tempo">
-                <button
-                  type="button"
-                  className="stepper__btn"
-                  aria-label="Diminuer le tempo"
-                  onClick={() => patch({ rTempo: Math.max(40, state.rTempo - 5) })}
-                >
-                  −
-                </button>
-                <span className="stepper__val">{state.rTempo} BPM</span>
-                <button
-                  type="button"
-                  className="stepper__btn"
-                  aria-label="Augmenter le tempo"
-                  onClick={() => patch({ rTempo: Math.min(200, state.rTempo + 5) })}
-                >
-                  +
-                </button>
-              </div>
-
-              <button
-                type="button"
-                className={cx('btn', 'btn--toggle', 'btn--sm', metro.running && 'is-on')}
-                aria-pressed={metro.running}
-                disabled={session.running}
-                onClick={metro.toggle}
-              >
-                {metro.running ? '■ Métronome' : '▶ Métronome'}
-              </button>
-
-              <div className="rk-beats" aria-hidden="true">
-                {[0, 1, 2, 3].map((i) => (
-                  <span
-                    key={i}
-                    className={cx(
-                      'rk-beat',
-                      i === 0 && 'rk-beat--accent',
-                      metro.running && metro.beat === i && 'is-on',
-                    )}
-                  />
-                ))}
-              </div>
-            </div>
-          </Field>
-        </div>
-        <div className="train-row__keys">
           <Field label="Placement">
             <div className="grid grid--two" role="group" aria-label="Placement des notes">
               <button
@@ -450,11 +447,14 @@ export function RhythmView({
               {session.running
                 ? countIn > 0
                   ? `Décompte… ${countIn}`
-                  : `Mesure ${currentBar + 1} / ${EXERCISE.length} · ${EXERCISE[Math.min(currentBar, EXERCISE.length - 1)]?.nom ?? ''}`
-                : 'Noires · croches · doubles · croches · noires'}
+                  : `Mesure ${currentBar + 1} / ${bars.length} · ${barName(bars[Math.min(currentBar, bars.length - 1)])}`
+                : state.rProg.on
+                  ? "L'enchaînement composé, un passage"
+                  : 'Noires · croches · doubles · croches · noires'}
             </span>
             <span className="transport__sub">
-              {totalBeats()} temps · {session.grid.length} notes ·{' '}
+              {state.rTempo} BPM · {state.rBeats}/{state.rNote} · {bars.length} mesures ·{' '}
+              {totalBeats(bars, state.rBeats)} temps · {session.grid.length} notes ·{' '}
               {state.rOffBeat ? 'à contretemps' : 'sur le temps'}
             </span>
           </div>
@@ -486,13 +486,13 @@ export function RhythmView({
         ) : null}
 
         <div className="rk-timeline" aria-hidden="true">
-          {EXERCISE.map((b, i) => (
+          {bars.map((b, i) => (
             <div
               key={i}
               className={cx('rk-slot', session.running && i === currentBar && 'is-on')}
             >
-              <span className="rk-slot__sym">{b.court}</span>
-              <span className="rk-slot__name">{b.nom}</span>
+              <Pattern subdiv={b.subdiv} />
+              <span className="rk-slot__name">{barName(b)}</span>
             </div>
           ))}
         </div>
@@ -545,8 +545,8 @@ export function RhythmView({
             {score.extras ? <em>· {score.extras} attaque(s) en trop</em> : null}
           </div>
 
-          {EXERCISE.map((_, i) => (
-            <NoteMarks key={i} results={score.results} bar={i} />
+          {bars.map((b, i) => (
+            <NoteMarks key={i} results={score.results} bar={i} name={barName(b)} />
           ))}
 
           <div className="rk-calib">

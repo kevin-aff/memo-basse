@@ -2,6 +2,22 @@ import type { CircleSound } from '../audio/engine';
 import { STORAGE_KEY } from '../config';
 import type { LabelMode, ScaleId } from '../music/types';
 import type { Exercise } from '../music/training';
+import {
+  BEATS_MAX,
+  BEATS_MIN,
+  DEFAULT_GAP,
+  DEFAULT_METRO,
+  DEFAULT_PROGRAM,
+  DEFAULT_RAMP,
+  fitAccents,
+} from '../rhythm/metronome';
+import type {
+  Accent,
+  GapSettings,
+  MetroPreset,
+  Program,
+  RampSettings,
+} from '../rhythm/metronome';
 
 export type View = 'menu' | 'home' | 'scale' | 'cercle' | 'train' | 'rythme';
 export type Theme = 'nuit' | 'carnet';
@@ -48,6 +64,25 @@ export interface AppState {
   rOffBeat: boolean;
   /** latence d'entrée à retrancher aux attaques détectées, en millisecondes */
   rLatencyMs: number;
+
+  // Métronome — `rTempo` lui sert de tempo, partagé avec l'exercice
+  /** temps par mesure */
+  rBeats: number;
+  /** dénominateur de la métrique : l'unité à laquelle le BPM se rapporte */
+  rNote: number;
+  /** index dans SUBDIVISIONS */
+  rSubdiv: number;
+  /** niveau d'accent de chaque temps, 0 à 3 */
+  rAccents: Accent[];
+  /** 0 à 100 */
+  rVolume: number;
+  rTimbre: number;
+  rRamp: RampSettings;
+  rGap: GapSettings;
+  /** enchaînement composé : sert au métronome comme à l'exercice mesuré */
+  rProg: Program;
+  /** réglages nommés */
+  rPresets: MetroPreset[];
 }
 
 export const INITIAL_STATE: AppState = {
@@ -77,6 +112,16 @@ export const INITIAL_STATE: AppState = {
   rTempo: 80,
   rOffBeat: false,
   rLatencyMs: 0,
+  rBeats: DEFAULT_METRO.beats,
+  rNote: DEFAULT_METRO.note,
+  rSubdiv: DEFAULT_METRO.subdiv,
+  rAccents: DEFAULT_METRO.accents,
+  rVolume: DEFAULT_METRO.volume,
+  rTimbre: DEFAULT_METRO.timbre,
+  rRamp: DEFAULT_RAMP,
+  rGap: DEFAULT_GAP,
+  rProg: DEFAULT_PROGRAM,
+  rPresets: [],
 };
 
 /** Réglages conservés d'une session à l'autre — la navigation, elle, repart du menu. */
@@ -100,6 +145,16 @@ const PERSISTED = [
   'rTempo',
   'rOffBeat',
   'rLatencyMs',
+  'rBeats',
+  'rNote',
+  'rSubdiv',
+  'rAccents',
+  'rVolume',
+  'rTimbre',
+  'rRamp',
+  'rGap',
+  'rProg',
+  'rPresets',
 ] as const satisfies readonly (keyof AppState)[];
 
 export function loadState(): AppState {
@@ -116,6 +171,20 @@ export function loadState(): AppState {
         (out as unknown as Record<string, unknown>)[k] = saved[k];
       }
     });
+    // Un enregistrement plus ancien peut ignorer des champs ajoutés depuis, et rien
+    // ne garantit que la liste des accents ait la longueur de la métrique relue.
+    out.rRamp = { ...DEFAULT_RAMP, ...out.rRamp };
+    out.rGap = { ...DEFAULT_GAP, ...out.rGap };
+    out.rProg = { ...DEFAULT_PROGRAM, ...out.rProg };
+    if (!Array.isArray(out.rProg.segs) || !out.rProg.segs.length) {
+      out.rProg = { ...out.rProg, segs: DEFAULT_PROGRAM.segs };
+    }
+    out.rBeats = Math.min(BEATS_MAX, Math.max(BEATS_MIN, Math.round(out.rBeats)));
+    out.rAccents = fitAccents(
+      Array.isArray(out.rAccents) ? out.rAccents : DEFAULT_METRO.accents,
+      out.rBeats,
+    );
+    if (!Array.isArray(out.rPresets)) out.rPresets = [];
     return out;
   } catch {
     return INITIAL_STATE;
