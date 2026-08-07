@@ -10,6 +10,7 @@ import {
   totalBeats,
 } from '../rhythm/exercise';
 import type { NoteResult, Verdict } from '../rhythm/exercise';
+import { useMetronome } from '../rhythm/useMetronome';
 import { useRhythmSession } from '../rhythm/useRhythmSession';
 import type { AppState } from '../state/appState';
 
@@ -96,6 +97,7 @@ export function RhythmView({
     latencyMs: state.rLatencyMs,
   });
   const pushOnset = session.pushOnset;
+  const metro = useMetronome(state.rTempo);
 
   const closeInput = useCallback(() => {
     sessionRef.current?.stop();
@@ -250,24 +252,49 @@ export function RhythmView({
       <div className="train-row">
         <div className="train-row__keys">
           <Field label="Tempo">
-            <div className="stepper" role="group" aria-label="Tempo">
+            <div className="rk-tempo">
+              <div className="stepper" role="group" aria-label="Tempo">
+                <button
+                  type="button"
+                  className="stepper__btn"
+                  aria-label="Diminuer le tempo"
+                  onClick={() => patch({ rTempo: Math.max(40, state.rTempo - 5) })}
+                >
+                  −
+                </button>
+                <span className="stepper__val">{state.rTempo} BPM</span>
+                <button
+                  type="button"
+                  className="stepper__btn"
+                  aria-label="Augmenter le tempo"
+                  onClick={() => patch({ rTempo: Math.min(200, state.rTempo + 5) })}
+                >
+                  +
+                </button>
+              </div>
+
               <button
                 type="button"
-                className="stepper__btn"
-                aria-label="Diminuer le tempo"
-                onClick={() => patch({ rTempo: Math.max(40, state.rTempo - 5) })}
+                className={cx('btn', 'btn--toggle', 'btn--sm', metro.running && 'is-on')}
+                aria-pressed={metro.running}
+                disabled={session.running}
+                onClick={metro.toggle}
               >
-                −
+                {metro.running ? '■ Métronome' : '▶ Métronome'}
               </button>
-              <span className="stepper__val">{state.rTempo} BPM</span>
-              <button
-                type="button"
-                className="stepper__btn"
-                aria-label="Augmenter le tempo"
-                onClick={() => patch({ rTempo: Math.min(200, state.rTempo + 5) })}
-              >
-                +
-              </button>
+
+              <div className="rk-beats" aria-hidden="true">
+                {[0, 1, 2, 3].map((i) => (
+                  <span
+                    key={i}
+                    className={cx(
+                      'rk-beat',
+                      i === 0 && 'rk-beat--accent',
+                      metro.running && metro.beat === i && 'is-on',
+                    )}
+                  />
+                ))}
+              </div>
             </div>
           </Field>
         </div>
@@ -324,7 +351,12 @@ export function RhythmView({
                 type="button"
                 className="btn btn--primary"
                 disabled={!input}
-                onClick={session.start}
+                onClick={() => {
+                  // L'exercice a son propre décompte et ses propres clics :
+                  // laisser tourner le métronome libre les ferait doubler.
+                  metro.stop();
+                  session.start();
+                }}
               >
                 ▶ Démarrer
               </button>
