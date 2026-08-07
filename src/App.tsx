@@ -3,6 +3,7 @@ import { Header } from './components/Header';
 import { CircleView } from './views/CircleView';
 import { MenuView } from './views/MenuView';
 import { ScaleView } from './views/ScaleView';
+import { RhythmView } from './views/RhythmView';
 import { ScalesIndexView } from './views/ScalesIndexView';
 import { TrainView } from './views/TrainView';
 import { loadState, saveState } from './state/appState';
@@ -74,6 +75,10 @@ export default function App() {
 
       {state.view === 'train' ? (
         <TrainView state={state} patch={patch} onBack={() => patch({ view: 'menu' })} />
+      ) : null}
+
+      {state.view === 'rythme' ? (
+        <RhythmView state={state} patch={patch} onBack={() => patch({ view: 'menu' })} />
       ) : null}
     </div>
   );
