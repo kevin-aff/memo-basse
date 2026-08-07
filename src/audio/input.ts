@@ -76,6 +76,13 @@ export interface InputSession {
   /** fréquence d'échantillonnage réellement négociée avec l'interface */
   sampleRate: number;
   label: string;
+  /**
+   * Latences déclarées par le navigateur, en millisecondes. Elles ne couvrent pas
+   * la capture, mais donnent un ordre de grandeur : une latence mesurée très
+   * supérieure vient du jeu, pas de la chaîne audio.
+   */
+  baseLatencyMs: number;
+  outputLatencyMs: number;
 }
 
 export interface InputOptions {
@@ -129,6 +136,8 @@ export async function startInput(opts: InputOptions): Promise<InputSession> {
   return {
     sampleRate: ac.sampleRate,
     label: track?.label || 'Entrée audio',
+    baseLatencyMs: (ac.baseLatency || 0) * 1000,
+    outputLatencyMs: (ac.outputLatency || 0) * 1000,
     stop: () => {
       node.port.onmessage = null;
       try {
