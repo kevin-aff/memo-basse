@@ -15,7 +15,12 @@ export interface CalibResult {
   medianMs: number;
   /** écart absolu médian : dispersion du jeu et de la chaîne */
   spreadMs: number;
+  /** nombre de clics ayant reçu une note */
   count: number;
+  /** clics ayant reçu plus d'une attaque : la détection se déclenche en double */
+  doubles: number;
+  /** attaques rattachées à aucun clic */
+  isolees: number;
 }
 
 export interface Calibration {
@@ -58,14 +63,39 @@ export function useCalibration(): Calibration {
   const total = CALIB_BARS * BEATS_PER_BAR;
 
   const compute = (): void => {
-    const devs: number[] = [];
+    // On regroupe par clic et on ne garde qu'une attaque par clic : la première.
+    // L'attaque d'une note est son premier franchissement de seuil ; tout ce qui
+    // suit dans le même temps est un artefact (rebond, corde qui résonne) et
+    // fausserait la médiane vers le haut.
+    const parClic = new Map<number, number[]>();
+    let isolees = 0;
+
     detections.current.forEach((d) => {
+      let idx = -1;
       let best = Infinity;
-      clicks.current.forEach((c) => {
-        if (Math.abs(d - c) < Math.abs(best)) best = d - c;
+      clicks.current.forEach((c, i) => {
+        const dev = d - c;
+        if (Math.abs(dev) < Math.abs(best)) {
+          best = dev;
+          idx = i;
+        }
       });
-      if (Math.abs(best) <= MAX_DIST) devs.push(best * 1000);
+      if (idx < 0 || Math.abs(best) > MAX_DIST) {
+        isolees++;
+        return;
+      }
+      const l = parClic.get(idx) ?? [];
+      l.push(best * 1000);
+      parClic.set(idx, l);
     });
+
+    const devs: number[] = [];
+    let doubles = 0;
+    parClic.forEach((l) => {
+      if (l.length > 1) doubles++;
+      devs.push(Math.min(...l));
+    });
+
     if (devs.length < MIN_NOTES) {
       setResult(null);
       return;
@@ -75,6 +105,8 @@ export function useCalibration(): Calibration {
       medianMs: med,
       spreadMs: median(devs.map((d) => Math.abs(d - med))),
       count: devs.length,
+      doubles,
+      isolees,
     });
   };
   const computeRef = useRef(compute);

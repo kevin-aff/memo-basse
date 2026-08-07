@@ -308,8 +308,14 @@ export function RhythmView({
                 </span>
               </div>
               <div className="rk-stat">
-                <span className="rk-stat__val">{calib.result.count}</span>
-                <span className="rk-stat__lab">notes retenues</span>
+                <span className="rk-stat__val">
+                  {calib.result.count} / {calib.total}
+                </span>
+                <span className="rk-stat__lab">clics avec une note</span>
+              </div>
+              <div className="rk-stat">
+                <span className="rk-stat__val">{calib.result.doubles}</span>
+                <span className="rk-stat__lab">déclenchements doubles</span>
               </div>
               <button
                 type="button"
@@ -322,6 +328,19 @@ export function RhythmView({
                 Appliquer
               </button>
             </div>
+          ) : null}
+
+          {!calib.running && calib.result ? (
+            <p className="rk-note">
+              Le navigateur déclare {input.baseLatencyMs.toFixed(0)} ms de latence interne et{' '}
+              {input.outputLatencyMs.toFixed(0)} ms en sortie. Une latence mesurée très supérieure
+              à cet ordre de grandeur ne vient pas de la chaîne audio mais du jeu : on jouerait
+              alors systématiquement après le clic. L'étalonnage ne sait pas distinguer les deux —
+              il retranche ce qu'il mesure.
+              {calib.result.doubles > calib.result.count / 10
+                ? ' Attention : la détection se déclenche deux fois sur plusieurs notes. Baissez le gain de la Scarlett.'
+                : ''}
+            </p>
           ) : null}
 
           {!calib.running && !calib.result && calib.captured > 0 ? (
