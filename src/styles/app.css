@@ -1434,6 +1434,41 @@ a:hover {
   text-align: center;
 }
 
+.rk-tempo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.rk-beats {
+  display: flex;
+  gap: 6px;
+}
+
+.rk-beat {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--surface2);
+  box-sizing: border-box;
+}
+
+.rk-beat--accent {
+  border-color: var(--dim);
+}
+
+.rk-beat.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.btn--toggle.is-on {
+  border-color: var(--accent);
+  background: color-mix(in oklch, var(--accent) 16%, transparent);
+}
+
 .rk-check {
   display: flex;
   flex-wrap: wrap;
